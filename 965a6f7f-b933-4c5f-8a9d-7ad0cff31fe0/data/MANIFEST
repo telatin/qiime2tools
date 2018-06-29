@@ -1,0 +1,10 @@
+sample-id,filename,direction
+S1,S1_S1_L001_R1_001.fastq.gz,forward
+S2,S2_S1_L001_R1_001.fastq.gz,forward
+S3,S3_S1_L001_R1_001.fastq.gz,forward
+S4,S4_S1_L001_R1_001.fastq.gz,forward
+S5,S5_S1_L001_R1_001.fastq.gz,forward
+S6,S6_S1_L001_R1_001.fastq.gz,forward
+S7,S7_S1_L001_R1_001.fastq.gz,forward
+S8,S8_S1_L001_R1_001.fastq.gz,forward
+S9,S9_S1_L001_R1_001.fastq.gz,forward
