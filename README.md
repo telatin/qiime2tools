@@ -21,5 +21,13 @@ From the command line:
 perl $INSTALLDIR/qiime2tools/script_name.pl 
 ```
 
+### Scripts
+
+#### gvl_publish_qzv.pl
+
+Extract the visualization of a Qiime 2 artifact (.qzv) to the public HTML directory of a 
+<a href="https://nectar.org.au/?portfolio=genomics-virtual-lab">GVL Virtual Server</a>.
+
+The result will be a public URL like <em>http://YOUR_IP/public/researcher/qiime2/ARTIFACT_ID</em>.
 
 

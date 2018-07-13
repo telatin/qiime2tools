@@ -58,17 +58,22 @@ foreach my $input_file (@ARGV) {
 		$nickname=~s/[^A-Za-z0-9_\.-]//g;
 		my $subdir = "${id}__${nickname}";
 
+		if (-d "$opt_dest_dir/$id") {
+			
+
+		}
 		print STDERR CYAN, "Identifier:\t", RESET, $id, "\n" if ($opt_verbose);
+
 		my $out = run("unzip -o -d \"$opt_dest_dir\" \"$input_file\" >/dev/null 2>&1");
 		
-		if ($opt_rename) {
-			if (-d "$opt_dest_dir/$input_basename" and !$opt_force_overwrite) {
-				die " FATAL ERROR:\nArtifact id $id should be placed in '$input_basename'\nbut '$opt_dest_dir/$input_basename' is present and -f not specified.\n";
-			}	
-			run(qq(rm -rf "$opt_dest_dir/$input_basename")) if (-d "$opt_dest_dir/$input_basename");
-			run(qq(mv --force "$opt_dest_dir/$id" "$opt_dest_dir/$input_basename"));
-			$out=$input_basename;
-		}
+#		if ($opt_rename) {
+#			if (-d "$opt_dest_dir/$input_basename" and !$opt_force_overwrite) {
+#				die " FATAL ERROR:\nArtifact id $id should be placed in '$input_basename'\nbut '$opt_dest_dir/$input_basename' is present and -f not specified.\n";
+#			}	
+#			run(qq(rm -rf "$opt_dest_dir/$input_basename")) if (-d "$opt_dest_dir/$input_basename");
+#			run(qq(mv --force "$opt_dest_dir/$id" "$opt_dest_dir/$input_basename"));
+#			$out=$input_basename;
+#		}
 		print STDERR CYAN "Artifact URL:\t", RESET, "$uri_base/$subdir\n";
 		
 		my $full_path = Cwd::abs_path($input_file);
@@ -128,7 +133,7 @@ sub init {
 	<body>
 	";
 	close $index_page;
-
+	run("chown ubuntu:ubuntu $opt_dest_dir/index.html");
 }
 
 sub run {
