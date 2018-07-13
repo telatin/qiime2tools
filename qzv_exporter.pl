@@ -10,7 +10,7 @@ use Term::ANSIColor  qw(:constants);
 use Getopt::Long;
 use Time::HiRes;
 use File::Basename;
-
+use Cwd;
 our $artifacts_dir = 'qiime2';
 our $this_script = $0;
 our $this_script_config = $ENV{"HOME"} . "/.qiime2_visualizer_rc";
@@ -19,7 +19,8 @@ our $opt_dest_dir = $public_html_base_path. "/$artifacts_dir/";
 our $this_ip = machine_ip();
 our $uri_base = 'http://' . $this_ip . '/public/researcher/' . $artifacts_dir;
 my $start_time = [Time::HiRes::gettimeofday()];
-
+my $today_timestamp = run('date +"%Y-%m-%d (%H:%M)"');
+chomp($today_timestamp);
 
 my (
 	$opt_force_overwrite,
@@ -41,6 +42,7 @@ print STDERR CYAN "Your IP:\t", RESET, $this_ip, "\n" if ($opt_verbose);
 if (!-d "$opt_dest_dir") {
 	die('Please create the output directory first')
 }
+open $index_page, '>>', "$opt_dest_dir/index.html" || die " Unable to write HTML index: $opt_dest_dir/index.html\n";
 
 foreach my $input_file (@ARGV) {
 		my $input_basename = basename($input_file);
@@ -68,6 +70,13 @@ foreach my $input_file (@ARGV) {
 			$out=$input_basename;
 		}
 		print STDERR CYAN "Artifact URL:\t", RESET, "$uri_base/$subdir\n";
+		
+		my $full_path = Cwd::abs_path($input_file);
+		print {$index_page} "<hr>
+		<small>$full_path <em>$today_timestamp</em></small>
+		<a href=\"$subdir/data/\">$input_basename ($id)</a>
+		";
+
 		
 }
 
