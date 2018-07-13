@@ -42,7 +42,7 @@ print STDERR CYAN "Your IP:\t", RESET, $this_ip, "\n" if ($opt_verbose);
 if (!-d "$opt_dest_dir") {
 	die('Please create the output directory first')
 }
-open $index_page, '>>', "$opt_dest_dir/index.html" || die " Unable to write HTML index: $opt_dest_dir/index.html\n";
+open my $index_page, '>>', "$opt_dest_dir/index.html" || die " Unable to write HTML index: $opt_dest_dir/index.html\n";
 
 foreach my $input_file (@ARGV) {
 		my $input_basename = basename($input_file);
