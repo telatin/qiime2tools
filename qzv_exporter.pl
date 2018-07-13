@@ -55,7 +55,7 @@ foreach my $input_file (@ARGV) {
 
 
 		my $nickname = $input_basename;
-		$nickname=~s/[^A-Za-z0-9_\.-//g;
+		$nickname=~s/[^A-Za-z0-9_\.-]//g;
 		my $subdir = "${id}__${nickname}";
 
 		print STDERR CYAN, "Identifier:\t", RESET, $id, "\n" if ($opt_verbose);
