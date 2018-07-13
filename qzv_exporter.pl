@@ -73,8 +73,8 @@ foreach my $input_file (@ARGV) {
 		
 		my $full_path = Cwd::abs_path($input_file);
 		print {$index_page} "<hr>
-		<small>$full_path <em>$today_timestamp</em></small>
-		<a href=\"$subdir/data/\">$input_basename ($id)</a>
+		<small>$full_path <em>$today_timestamp</em></small><br>
+		<a href=\"$subdir/data/\">$id $input_basename</a>
 		";
 
 		
@@ -112,7 +112,21 @@ sub init {
 	} else {
 		die "FATAL ERROR:\nUnable to write to <$this_script_config>\n";
 	}
-	
+
+	open my $index_page, '>>', "$opt_dest_dir/index.html" || die " Unable to write HTML index: $opt_dest_dir/index.html\n";	
+	print {$index_page} "<html>
+	<head>
+		<style><!--
+		body { font-family: Helvetica, Verdana; }
+		h1 { color: navy; }
+		h2 { color: #ccc; }
+		a:link { color: navy; }
+		a:visited { color: lightblue; }
+		a:active  { color: red; }
+		--></style>
+	</head>
+	<body>
+	"
 
 }
 
