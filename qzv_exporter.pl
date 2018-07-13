@@ -1,5 +1,8 @@
 #!/usr/bin/env perl
 
+# A program to export a Qiime2 visualization (qzv) to the public HTML folder
+# of a GVL (Genomics Virtual Laboratory)
+
 use v5.18;
 
 
@@ -48,10 +51,13 @@ foreach my $input_file (@ARGV) {
 		die "FATAL ERROR:\nUnexpected artifact: should contain only a subdirectory\n:$id\n" if ($id=~/\n/);
 		$id =~s/ //g; # Strip spaces
 
-		my $subdir = $id;
+
+		my $nickname = $input_basename;
+		$nickname=~s/[^A-Za-z0-9_\.-//g;
+		my $subdir = "${id}__${nickname}";
 
 		print STDERR CYAN, "Identifier:\t", RESET, $id, "\n" if ($opt_verbose);
-		my $out = run("unzip -o -d \"$opt_dest_dir\" \"$input_file\"");
+		my $out = run("unzip -o -d \"$opt_dest_dir\" \"$input_file\" >/dev/null 2>&1");
 		
 		if ($opt_rename) {
 			if (-d "$opt_dest_dir/$input_basename" and !$opt_force_overwrite) {
@@ -61,7 +67,7 @@ foreach my $input_file (@ARGV) {
 			run(qq(mv --force "$opt_dest_dir/$id" "$opt_dest_dir/$input_basename"));
 			$out=$input_basename;
 		}
-		print STDERR CYAN "Artifact URL:\t", RESET, "$uri_base/$out\n";
+		print STDERR CYAN "Artifact URL:\t", RESET, "$uri_base/$subdir\n";
 		
 }
 
