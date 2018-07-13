@@ -126,7 +126,8 @@ sub init {
 		--></style>
 	</head>
 	<body>
-	"
+	";
+	close $index_page;
 
 }
 
