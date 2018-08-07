@@ -34,7 +34,6 @@ my (
 my $GetOptions = GetOptions(
 	'v|verbose'				        => \$opt_verbose,
 	'f|folder=s'                    => \$opt_folder_name,
-	'r|rename'                      => \$opt_rename,
 	'force'                         => \$opt_force_overwrite,
 	'reinstall'                     => \$opt_reinstall,
 );
@@ -161,24 +160,7 @@ sub init {
 	} else {
 		die "FATAL ERROR:\nUnable to write to <$this_script_config>\n";
 	}
-
-	# open my $index_page, '>>', "$opt_dest_dir/index.html" || die " Unable to write HTML index: $opt_dest_dir/index.html\n";	
-	# print {$index_page} "<html>
-	# <head>
-	# 	<style><!--
-	# 	body { font-family: Helvetica, Verdana; }
-	# 	h1 { color: navy; }
-	# 	h2 { color: #ccc; }
-	# 	a:link { color: navy; }
-	# 	a:visited { color: lightblue; }
-	# 	a:active  { color: red; }
-	# 	--></style>
-	# </head>
-	# <body>
-	# ";
-	# close $index_page;
-	#run("chown ubuntu:ubuntu $opt_dest_dir/index.html");
-
+ 
 	if ($ARGV[0]) {
 		print RED STDERR " WARNING!\n";
 		print RESET STDERR " Initialization finished. Please, now run the command without sudo to export your files @ARGV\n";
