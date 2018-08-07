@@ -106,7 +106,7 @@ create_index();
 
 sub create_index {
 	my $index_file = "$opt_dest_dir/index.html";
-	open O, '>', "" || die " FATAL ERROR:\n Unable to write to index file\n";
+	open O, '>', "$index_file" || die " FATAL ERROR:\n Unable to write to index file\n";
 
 	print O "<html>
 	 <head>
@@ -133,7 +133,7 @@ sub create_index {
 	}
 
 	print O "</ul></body></html>\n";
-    close $index_page;	
+    close O;	
 
 }
 
