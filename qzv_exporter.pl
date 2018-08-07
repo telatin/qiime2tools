@@ -11,7 +11,6 @@ use Getopt::Long;
 use Time::HiRes;
 use File::Basename;
 use Cwd;
-
 our $artifacts_dir = 'qiime2';
 our $this_script = $0;
 our $this_script_config = $ENV{"HOME"} . "/.qiime2_visualizer_rc";
@@ -24,27 +23,18 @@ my $today_timestamp = run('date +"%Y-%m-%d (%H:%M)"');
 chomp($today_timestamp);
 
 my (
-	$opt_folder_name,
 	$opt_force_overwrite,
 	$opt_verbose,
 	$opt_rename,
-	$opt_reinstall,
 );
 
 my $GetOptions = GetOptions(
-		'v|verbose'				        => \$opt_verbose,
-		'f|folder'                      => \$opt_folder_name,
-		'r|rename'                      => \$opt_rename,
-		'force'                         => \$opt_force_overwrite,
-		'reinstall'                     => \$opt_reinstall,
+		'v|verbose'				=> \$opt_verbose,
+		'f|force'                               => \$opt_force_overwrite,
 );
 
 splash_screen() unless ($ARGV[0]);
-
-if ( (-e $this_script_config) or $opt_reinstall ) {
-	init();
-}
-
+init() unless  (-e $this_script_config);
 $this_ip = '{YOUR_IP}' unless ($this_ip=~/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/);
 print STDERR CYAN "Your IP:\t", RESET, $this_ip, "\n" if ($opt_verbose);
 
@@ -53,48 +43,42 @@ if (!-d "$opt_dest_dir") {
 }
 open my $index_page, '>>', "$opt_dest_dir/index.html" || die " Unable to write HTML index: $opt_dest_dir/index.html\n";
 
-if ($opt_folder_name) {
-	run(qq(mkdir "$opt_dest_dir/$opt_folder_name/"));
-	$opt_dest_dir = "$opt_dest_dir/$opt_folder_name/";
-}
-
 foreach my $input_file (@ARGV) {
 		my $input_basename = basename($input_file);
 		print STDERR BOLD "- $input_basename\n", RESET;
 
-		# {id} get Qiime2 artifacts identifier
-		# -------------------------------------------------------------------------------------------------------
 		my $id = run(qq(unzip  -t "$input_file" |  grep testing | cut -f 2 -d : | cut -f1 -d/ |sort -u));
-		chomp($id);                # Remove trailing newline
+		chomp($id); # Remove trailing newline
 		die "FATAL ERROR:\nUnexpected artifact: should contain only a subdirectory\n:$id\n" if ($id=~/\n/);
-		$id =~s/ //g;              # Strip spaces
+		$id =~s/ //g; # Strip spaces
 
 
 		my $nickname = $input_basename;
 		$nickname=~s/[^A-Za-z0-9_\.-]//g;
-	
+		my $subdir = "${id}__${nickname}";
 
- 
 		print STDERR CYAN, "Identifier:\t", RESET, $id, "\n" if ($opt_verbose);
-
 		my $out = run("unzip -o -d \"$opt_dest_dir\" \"$input_file\" >/dev/null 2>&1");
 		
-#		if ($opt_rename) {
-#			if (-d "$opt_dest_dir/$input_basename" and !$opt_force_overwrite) {
-#				die " FATAL ERROR:\nArtifact id $id should be placed in '$input_basename'\nbut '$opt_dest_dir/$input_basename' is present and -f not specified.\n";
-#			}	
-#			run(qq(rm -rf "$opt_dest_dir/$input_basename")) if (-d "$opt_dest_dir/$input_basename");
-#			run(qq(mv --force "$opt_dest_dir/$id" "$opt_dest_dir/$input_basename"));
-#			$out=$input_basename;
-#		}
-		print STDERR CYAN "Artifact URL:\t", RESET, "$uri_base/$subdir/$opt_folder_name/data\n";
+		# if ($opt_rename) {
+		# 	if (-d "$opt_dest_dir/$input_basename" and !$opt_force_overwrite) {
+		# 		die " FATAL ERROR:\nArtifact id $id should be placed in '$input_basename'\nbut '$opt_dest_dir/$input_basename' is present and -f not specified.\n";
+		# 	}	
+		# 	run(qq(rm -rf "$opt_dest_dir/$input_basename")) if (-d "$opt_dest_dir/$input_basename");
+		# 	run(qq(mv --force "$opt_dest_dir/$id" "$opt_dest_dir/$input_basename"));
+		# 	$out=$input_basename;
+		# }
+		print STDERR CYAN "Artifact URL:\t", RESET, "$uri_base/$subdir\n",
+		             CYAN "Local path:\t",   RESET, "$opt_dest_dir/$subdir\n";
 		
 		my $full_path = Cwd::abs_path($input_file);
-
 
 		
 }
 
+sub build_html {
+	
+}
 sub machine_ip {
 	my $this_ip = run( 'grep -v "127.0.0.1" /etc/hosts | grep $(hostname) | cut -f 1  -d " " ' );
 	chomp($this_ip);
@@ -114,8 +98,8 @@ sub init {
 	}
 
 	if (! -d "$public_html_base_path") {
-		print STDERR BOLD RED, "FATAL ERROR: IMPOSSIBLE TO INSTALL\n", RESET;
-		die "This script is made for Genomic Virtual Laboratory images.\nPublic HTML directory ($public_html_base_path) was not found in this machine\n\n";
+		print STDERR BOLD RED, "FATAL ERROR\n", RESET;
+		die "This script is made for Genomic Virtual Laboratory images.\nPublic HTML directory ($public_html_base_path) was not found in this machine\n";
 	}
 
 	run("mkdir -p $opt_dest_dir");
@@ -128,28 +112,22 @@ sub init {
 		die "FATAL ERROR:\nUnable to write to <$this_script_config>\n";
 	}
 
-	# open my $index_page, '>>', "$opt_dest_dir/index.html" || die " Unable to write HTML index: $opt_dest_dir/index.html\n";	
-	# print {$index_page} "<html>
-	# <head>
-	# 	<style><!--
-	# 	body { font-family: Helvetica, Verdana; }
-	# 	h1 { color: navy; }
-	# 	h2 { color: #ccc; }
-	# 	a:link { color: navy; }
-	# 	a:visited { color: lightblue; }
-	# 	a:active  { color: red; }
-	# 	--></style>
-	# </head>
-	# <body>
-	# ";
-	# close $index_page;
-	run("chown ubuntu:ubuntu $opt_dest_dir/index.html");
+	open my $index_page, '>>', "$opt_dest_dir/index.html" || die " Unable to write HTML index: $opt_dest_dir/index.html\n";	
+	print {$index_page} "<html>
+	<head>
+		<style><!--
+		body { font-family: Helvetica, Verdana; }
+		h1 { color: navy; }
+		h2 { color: #ccc; }
+		a:link { color: navy; }
+		a:visited { color: lightblue; }
+		a:active  { color: red; }
+		--></style>
+	</head>
+	<body>
+	";
+	close $index_page;
 
-	if ($ARGV[0]) {
-		print RED STDERR " WARNING!\n";
-		print RESET STDERR " Initialization finished. Please, now run the command without sudo to export your files @ARGV\n";
-	}
-	exit;
 }
 
 sub run {
@@ -160,31 +138,23 @@ sub run {
 }
 
 sub splash_screen {
-	print BOLD CYAN "
+	print STDERR BOLD "
 	-------------------------------------------------------
 	Qiime 2.0 Visualization Exporter
 	-------------------------------------------------------\n", RESET;
-print <<END;
+print STDERR<<END;
 	Usage:
 	$this_script [options] FILE.qzv ...
 
 	OPTIONS:
-	-f, --folder
-			Name of the subfolder to 
-
 	-v, --verbose
 			Enable verbose output
 
-
-
-
-	INSTALLATION:
-	The first time run:
-		sudo $this_script
-
-	To reinstall:
-		sudo $this_script --reinstall
-
+	-d, --dest-dir DIRECTORY
+			Directory where the visualization will be saved.
+			Changing destination directory can result in
+			lack of features.
+			Default: $opt_dest_dir
 
 END
 }
