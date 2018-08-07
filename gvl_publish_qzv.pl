@@ -33,7 +33,7 @@ my (
 
 my $GetOptions = GetOptions(
 		'v|verbose'				        => \$opt_verbose,
-		'f|folder'                      => \$opt_folder_name,
+		'f|folder=s'                    => \$opt_folder_name,
 		'r|rename'                      => \$opt_rename,
 		'force'                         => \$opt_force_overwrite,
 		'reinstall'                     => \$opt_reinstall,
