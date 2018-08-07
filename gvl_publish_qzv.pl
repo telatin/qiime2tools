@@ -47,7 +47,7 @@ if ( (!-e $this_script_config) or $opt_reinstall ) {
 
 if ($ARGV[0] and $> == 0) {
 	print STDERR " RUNNING AS ROOT NOT ALLOWED\n", RESET;
-	die "Running with 'sudo' required only to install this script. Run without sudo.\n";
+	die " Running with 'sudo' required only to install this script. Run without sudo.\n";
 }
 
 $this_ip = '{YOUR_IP}' unless ($this_ip=~/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/);
@@ -57,11 +57,11 @@ if (!-d "$opt_dest_dir") {
 	die("Please create the output directory first ($opt_dest_dir missing)");
 }
 
-
+our $opt_unzip_dir = $opt_dest_dir;
 if ($opt_folder_name) {
 	$opt_folder_name.='/';
 	run(qq(mkdir "$opt_dest_dir/$opt_folder_name/"));
-	$opt_dest_dir = "$opt_dest_dir/$opt_folder_name";
+	$opt_unzip_dir = "$opt_dest_dir/$opt_folder_name";
 }
 
 foreach my $input_file (@ARGV) {
@@ -83,7 +83,7 @@ foreach my $input_file (@ARGV) {
  
 		print STDERR CYAN, "Identifier:\t", RESET, $id, "\n" if ($opt_verbose);
 
-		my $out = run("unzip -o -d \"$opt_dest_dir\" \"$input_file\" >/dev/null 2>&1");
+		my $out = run("unzip -o -d \"$opt_unzip_dir\" \"$input_file\" >/dev/null 2>&1");
 		
 #		if ($opt_rename) {
 #			if (-d "$opt_dest_dir/$input_basename" and !$opt_force_overwrite) {
@@ -99,6 +99,42 @@ foreach my $input_file (@ARGV) {
 
 
 		
+}
+
+create_index();
+
+
+sub create_index {
+	my $index_file = "$opt_dest_dir/index.html";
+	open O, '>', "" || die " FATAL ERROR:\n Unable to write to index file\n";
+
+	print O "<html>
+	 <head>
+	 	<style><!--
+	 	body { font-family: Helvetica, Verdana; }
+	 	h1 { color: navy; }
+	 	h2 { color: #ccc; }
+	 	a:link { color: navy; }
+	 	a:visited { color: lightblue; }
+	 	a:active  { color: red; }
+	 	--></style>
+	 </head>
+	 <body>
+	 <h1>Qiime2 Artifacts</h1>
+
+	<ul>
+	";
+	my @output = `find "$opt_dest_dir" -name "data"`;
+
+	foreach my $path (@output) {
+		$path =~s/$opt_dest_dir//;
+		print O "<li><a href=\"$path\">$path
+		</li>";
+	}
+
+	print O "</ul></body></html>\n";
+    close $index_page;	
+
 }
 
 sub machine_ip {
