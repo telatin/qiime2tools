@@ -123,8 +123,8 @@ sub create_index {
 		print O "<li><a href=\"$path\">$name</a> <pre>$path</pre>
 		</li>";
 	}
-
-	print O "</ul></body></html>\n";
+	my $date = `date`;
+	print O "</ul>\n<small>Last updated: $date</small></body></html>\n";
     close O;	
     print STDERR CYAN "Creating index:", RESET, "\t$index_file\n";
 }
