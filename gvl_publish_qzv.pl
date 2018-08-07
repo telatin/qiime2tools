@@ -130,7 +130,7 @@ sub create_index {
 		chomp($path);
 		my $name = run( qq(cat "$path/name.txt") );
 		$path =~s/$opt_dest_dir//;
-		print O "<li><a href=\"$path\">$path
+		print O "<li><a href=\"$path\">$name
 		</li>";
 	}
 
