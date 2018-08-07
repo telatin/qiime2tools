@@ -41,7 +41,7 @@ my $GetOptions = GetOptions(
 
 splash_screen() unless ($ARGV[0]);
 
-if ( (-e $this_script_config) or $opt_reinstall ) {
+if ( (!-e $this_script_config) or $opt_reinstall ) {
 	init();
 }
 
@@ -49,9 +49,9 @@ $this_ip = '{YOUR_IP}' unless ($this_ip=~/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/);
 print STDERR CYAN "Your IP:\t", RESET, $this_ip, "\n" if ($opt_verbose);
 
 if (!-d "$opt_dest_dir") {
-	die('Please create the output directory first')
+	die("Please create the output directory first ($opt_dest_dir missing)");
 }
-open my $index_page, '>>', "$opt_dest_dir/index.html" || die " Unable to write HTML index: $opt_dest_dir/index.html\n";
+
 
 if ($opt_folder_name) {
 	run(qq(mkdir "$opt_dest_dir/$opt_folder_name/"));
@@ -143,7 +143,7 @@ sub init {
 	# <body>
 	# ";
 	# close $index_page;
-	run("chown ubuntu:ubuntu $opt_dest_dir/index.html");
+	#run("chown ubuntu:ubuntu $opt_dest_dir/index.html");
 
 	if ($ARGV[0]) {
 		print RED STDERR " WARNING!\n";
