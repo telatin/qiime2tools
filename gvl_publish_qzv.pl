@@ -32,11 +32,11 @@ my (
 );
 
 my $GetOptions = GetOptions(
-		'v|verbose'				        => \$opt_verbose,
-		'f|folder=s'                    => \$opt_folder_name,
-		'r|rename'                      => \$opt_rename,
-		'force'                         => \$opt_force_overwrite,
-		'reinstall'                     => \$opt_reinstall,
+	'v|verbose'				        => \$opt_verbose,
+	'f|folder=s'                    => \$opt_folder_name,
+	'r|rename'                      => \$opt_rename,
+	'force'                         => \$opt_force_overwrite,
+	'reinstall'                     => \$opt_reinstall,
 );
 
 splash_screen() unless ($ARGV[0]);
@@ -60,7 +60,7 @@ if (!-d "$opt_dest_dir") {
 our $opt_unzip_dir = $opt_dest_dir;
 if ($opt_folder_name) {
 	$opt_folder_name.='/';
-	run(qq(mkdir "$opt_dest_dir/$opt_folder_name/"));
+	run(qq(mkdir -p "$opt_dest_dir/$opt_folder_name/"));
 	$opt_unzip_dir = "$opt_dest_dir/$opt_folder_name";
 }
 
@@ -74,31 +74,20 @@ foreach my $input_file (@ARGV) {
 		chomp($id);                # Remove trailing newline
 		die "FATAL ERROR:\nUnexpected artifact: should contain only a subdirectory\n:$id\n" if ($id=~/\n/);
 		$id =~s/ //g;              # Strip spaces
-
-
+ 
 		my $nickname = $input_basename;
 		$nickname=~s/[^A-Za-z0-9_\.-]//g;
-	
-
+ 
  
 		print STDERR CYAN, "Identifier:\t", RESET, $id, "\n" if ($opt_verbose);
 
 		my $out = run("unzip -o -d \"$opt_unzip_dir\" \"$input_file\" >/dev/null 2>&1");
 		run(qq(echo "$nickname" > "$opt_unzip_dir/$id/data/name.txt"));		
-#		if ($opt_rename) {
-#			if (-d "$opt_dest_dir/$input_basename" and !$opt_force_overwrite) {
-#				die " FATAL ERROR:\nArtifact id $id should be placed in '$input_basename'\nbut '$opt_dest_dir/$input_basename' is present and -f not specified.\n";
-#			}	
-#			run(qq(rm -rf "$opt_dest_dir/$input_basename")) if (-d "$opt_dest_dir/$input_basename");
-#			run(qq(mv --force "$opt_dest_dir/$id" "$opt_dest_dir/$input_basename"));
-#			$out=$input_basename;
-#		}
+ 
 		print STDERR CYAN "Artifact URL:\t", RESET, "$uri_base/$opt_folder_name$id/data\n";
 		
 		my $full_path = Cwd::abs_path($input_file);
-
-
-		
+ 	
 }
 
 create_index();
@@ -137,7 +126,7 @@ sub create_index {
 
 	print O "</ul></body></html>\n";
     close O;	
-
+    print STDERR CYAN "Creating index:", RESET, "\t$index_file\n";
 }
 
 sub machine_ip {
