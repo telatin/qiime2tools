@@ -130,7 +130,7 @@ sub create_index {
 		chomp($path);
 		my $name = run( qq(cat "$path/name.txt") );
 		$path =~s/$opt_dest_dir//;
-		print O "<li><a href=\"$path\">$name
+		print O "<li><a href=\"$path\">$name</a> $path
 		</li>";
 	}
 
@@ -214,7 +214,7 @@ print <<END;
 
 	OPTIONS:
 	-f, --folder
-			Name of the subfolder to 
+			Name of the subfolder to extract the artifact to
 
 	-v, --verbose
 			Enable verbose output
