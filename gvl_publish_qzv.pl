@@ -54,8 +54,9 @@ if (!-d "$opt_dest_dir") {
 
 
 if ($opt_folder_name) {
+	$opt_folder_name.='/';
 	run(qq(mkdir "$opt_dest_dir/$opt_folder_name/"));
-	$opt_dest_dir = "$opt_dest_dir/$opt_folder_name/";
+	$opt_dest_dir = "$opt_dest_dir/$opt_folder_name";
 }
 
 foreach my $input_file (@ARGV) {
@@ -87,7 +88,7 @@ foreach my $input_file (@ARGV) {
 #			run(qq(mv --force "$opt_dest_dir/$id" "$opt_dest_dir/$input_basename"));
 #			$out=$input_basename;
 #		}
-		print STDERR CYAN "Artifact URL:\t", RESET, "$uri_base/$opt_folder_name/data\n";
+		print STDERR CYAN "Artifact URL:\t", RESET, "$uri_base/$opt_folder_name$id/data\n";
 		
 		my $full_path = Cwd::abs_path($input_file);
 
