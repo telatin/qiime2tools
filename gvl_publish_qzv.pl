@@ -84,7 +84,7 @@ foreach my $input_file (@ARGV) {
 		print STDERR CYAN, "Identifier:\t", RESET, $id, "\n" if ($opt_verbose);
 
 		my $out = run("unzip -o -d \"$opt_unzip_dir\" \"$input_file\" >/dev/null 2>&1");
-		
+		run(qq(echo "$nickname" > "$opt_unzip_dir/data/name.txt"));		
 #		if ($opt_rename) {
 #			if (-d "$opt_dest_dir/$input_basename" and !$opt_force_overwrite) {
 #				die " FATAL ERROR:\nArtifact id $id should be placed in '$input_basename'\nbut '$opt_dest_dir/$input_basename' is present and -f not specified.\n";
@@ -127,6 +127,7 @@ sub create_index {
 	my @output = `find "$opt_dest_dir" -name "data"`;
 
 	foreach my $path (@output) {
+		my $name = run( qq(cat "$opt_dest_dir/name.txt") );
 		$path =~s/$opt_dest_dir//;
 		print O "<li><a href=\"$path\">$path
 		</li>";
