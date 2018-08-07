@@ -127,6 +127,7 @@ sub create_index {
 	my @output = `find "$opt_dest_dir" -name "data"`;
 
 	foreach my $path (@output) {
+		chomp($path);
 		my $name = run( qq(cat "$path/name.txt") );
 		$path =~s/$opt_dest_dir//;
 		print O "<li><a href=\"$path\">$path
