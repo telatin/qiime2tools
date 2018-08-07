@@ -45,6 +45,11 @@ if ( (!-e $this_script_config) or $opt_reinstall ) {
 	init();
 }
 
+if ($ARGV[0] and $> == 0) {
+	print STDERR " RUNNING AS ROOT NOT ALLOWED\n", RESET;
+	die "Running with 'sudo' required only to install this script. Run without sudo.\n";
+}
+
 $this_ip = '{YOUR_IP}' unless ($this_ip=~/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/);
 print STDERR CYAN "Your IP:\t", RESET, $this_ip, "\n" if ($opt_verbose);
 
