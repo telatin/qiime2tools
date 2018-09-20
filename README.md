@@ -23,6 +23,17 @@ perl $INSTALLDIR/qiime2tools/script_name.pl
 
 ## Scripts
 
+### extract_data_from_artifact.pl
+
+Extracts the content of the 'data' directory in the artifact in a destination folder.
+
+```
+extract_data_from_artifact.pl [options] artifact1 artifact2 ... 
+
+ -b, --basename              Use as subdirectory name the artifact file name instead of its UUID
+ -d, --destination           Destination directory (default: ./)
+```
+
 ### gvl_publish_qzv.pl
 
 Extract the visualization of a Qiime 2 artifact (.qzv) to the public HTML directory of a 

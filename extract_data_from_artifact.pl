@@ -18,6 +18,15 @@ my (
 	$opt_basename,
 );
 
+say STDERR " QIIME2 ARTIFACT EXTRACTOR
+
+Usage:
+extract_data_from_artifact.pl [options] artifact_file1 artifact_file2 ...
+
+  -d DIR              Destination directory where to expand artifacts
+  -b                  Use artifact filename as subdirectory name instead of UUID
+
+";
 my $GetOptions = GetOptions(
 	'v|verbose'	             => \$opt_verbose,
 	'd|destination-folder=s' => \$opt_destination_folder,
@@ -41,14 +50,14 @@ foreach my $artifact_file (@ARGV) {
 	my ($uuid, $type, $format) = getArtifactPeek($artifact_file);
 	
 	if (defined $opt_basename) {
-		$destination_folder = $opt_destination_folder . basename($artifact_file);
+		$destination_folder = $opt_destination_folder . '/' . basename($artifact_file);
 	} else {
-		$destination_folder = $opt_destination_folder . $uuid;
+		$destination_folder = $opt_destination_folder . '/' .$uuid;
 	}
 
 	print STDERR YELLOW "UUID\t", RESET, "$uuid\n";
 	print STDERR YELLOW "Type\t", RESET, "$type\n";
-	print STDERR YELLOW "Dest\t", RESET, "$opt_destination_folder\n";
+	print STDERR YELLOW "Dest\t", RESET, "$destination_folder\n";
 	
 	my $random = int( 99_999_999 * rand() );
 	run("mkdir /tmp/$random/", "Creating temporary directory");
@@ -59,7 +68,7 @@ foreach my $artifact_file (@ARGV) {
 		"Moving $artifact_file data content to $destination_folder"
 		); 
 
-
+2		"Removing temporary directory /tmp/$random/")
 }
 
 
