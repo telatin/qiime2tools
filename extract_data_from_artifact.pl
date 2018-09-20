@@ -65,7 +65,9 @@ sub getArtifactPeek {
 	my $file = shift @_;
 	my @output = run(qq(qiime tools peek "$file"));
 	my ($uuid, $type, $format);
+	die "Not enough output lines from peek $#output:\n @output" if (!$output[1]);
 	foreach my $line (@output) {
+		say STDERR "---> $line\n" if ($opt_verbose);
 		chomp($line);
 		my ($k, $value) = split /:\s+/, $line;
 		if ($k eq 'UUID') {
