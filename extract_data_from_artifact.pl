@@ -72,8 +72,10 @@ sub getArtifactPeek {
 			$uuid = $value;
 		} elsif ($k eq 'Type') {
 			$type = $value;
-		} else {
+		} elsif ($k eq 'Data format') {
 			$format = $value;
+		} else {
+			say STDERR "Unrecognized qiime peek line: [$k, $value]\n$line\n";
 		}
 	}
 
