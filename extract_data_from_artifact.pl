@@ -63,7 +63,8 @@ foreach my $artifact_file (@ARGV) {
 
 sub getArtifactPeek {
 	my $file = shift @_;
-	my @output = run(qq(qiime tools peek "$file"));
+	my $rawoutput = run(qq(qiime tools peek "$file"));
+	my @output = split /\n/, $rawoutput;
 	my ($uuid, $type, $format);
 	die "Not enough output lines from peek $#output:\n @output" if (!$output[1]);
 	foreach my $line (@output) {
