@@ -12,14 +12,16 @@ use Time::HiRes;
 use File::Basename;
 use Cwd;
 
+my $opt_destination_folder = './';
 my (
 	$opt_verbose,
-	$opt_destination_folder,
+	$opt_basename,
 );
 
 my $GetOptions = GetOptions(
 	'v|verbose'	             => \$opt_verbose,
 	'd|destination-folder=s' => \$opt_destination_folder,
+	'b|basename'             => \$opt_basename,
 );
 
 my $check_version = run("qiime --version 2>/dev/null", "Checking Qiime2 version");
@@ -38,10 +40,10 @@ foreach my $artifact_file (@ARGV) {
 	
 	my ($uuid, $type, $format) = getArtifactPeek($artifact_file);
 	
-	if (defined $opt_destination_folder) {
-		$destination_folder = $opt_destination_folder;
+	if (defined $opt_basename) {
+		$destination_folder = $opt_destination_folder . basename($artifact_file);
 	} else {
-		$destination_folder = './' . $uuid;
+		$destination_folder = $opt_destination_folder . $uuid;
 	}
 
 	print STDERR YELLOW "UUID\t", RESET, "$uuid\n";
