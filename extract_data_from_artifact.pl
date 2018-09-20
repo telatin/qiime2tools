@@ -68,7 +68,8 @@ foreach my $artifact_file (@ARGV) {
 		"Moving $artifact_file data content to $destination_folder"
 		); 
 
-2		"Removing temporary directory /tmp/$random/")
+	run ( qq(rm -rf "/tmp/$random/") ,
+		"Removing temporary directory /tmp/$random/")
 }
 
 
