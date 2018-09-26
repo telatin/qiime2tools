@@ -21,6 +21,14 @@ our $this_ip = machine_ip();
 our $uri_base = 'http://' . $this_ip . '/public/researcher/' . $artifacts_dir;
 my $start_time = [Time::HiRes::gettimeofday()];
 my $today_timestamp = run('date +"%Y-%m-%d (%H:%M)"');
+
+say RED STDERR "
+
+ -------------------------------------------------------------------------------
+ 	This script has been deprecated as it was developed for 2017.9
+ -------------------------------------------------------------------------------
+
+";
 chomp($today_timestamp);
 
 my (
@@ -32,10 +40,10 @@ my (
 );
 
 my $GetOptions = GetOptions(
-	'v|verbose'				        => \$opt_verbose,
-	'f|folder=s'                    => \$opt_folder_name,
-	'force'                         => \$opt_force_overwrite,
-	'reinstall'                     => \$opt_reinstall,
+	'v|verbose'	           => \$opt_verbose,
+	'f|folder=s'           => \$opt_folder_name,
+	'force'                => \$opt_force_overwrite,
+	'reinstall'            => \$opt_reinstall,
 );
 
 splash_screen() unless ($ARGV[0]);

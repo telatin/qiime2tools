@@ -55,6 +55,13 @@ foreach my $artifact_file (@ARGV) {
 		$destination_folder = $opt_destination_folder . '/' .$uuid;
 	}
 
+	if (! -d "$destination_folder") {
+		run( qq(mkdir "$destination_folder"),
+			 "Creating destination directory: $destination_folder"
+			);
+
+	}
+
 	print STDERR YELLOW "UUID\t", RESET, "$uuid\n";
 	print STDERR YELLOW "Type\t", RESET, "$type\n";
 	print STDERR YELLOW "Dest\t", RESET, "$destination_folder\n";
