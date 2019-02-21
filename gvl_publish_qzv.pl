@@ -22,7 +22,7 @@ our $uri_base = 'http://' . $this_ip . '/public/researcher/' . $artifacts_dir;
 my $start_time = [Time::HiRes::gettimeofday()];
 my $today_timestamp = run('date +"%Y-%m-%d (%H:%M)"');
 
-say RED STDERR "
+say STDERR RED "
 
  -------------------------------------------------------------------------------
  	This script has been deprecated as it was developed for 2017.9

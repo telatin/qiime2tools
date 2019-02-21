@@ -23,6 +23,15 @@ perl $INSTALLDIR/qiime2tools/script_name.pl
 
 ## Scripts
 
+### qzoom.pl
+
+Updated utility to extract data from Qiime 2 artifacts. See *qzoom_documentation.html*.
+
+It works independently from Qiime2, its meant to automate common tasks (e.g. extract .biom file and automatically converts it to tsv). In progress.
+
+
+## Legacy scripts
+
 ### extract_data_from_artifact.pl
 
 Extracts the content of the 'data' directory in the artifact in a destination folder.
@@ -43,5 +52,6 @@ Extract the visualization of a Qiime 2 artifact (.qzv) to the public HTML direct
 <a href="https://nectar.org.au/?portfolio=genomics-virtual-lab">GVL Virtual Server</a>.
 
 The result will be a public URL like <em>http://YOUR_IP/public/researcher/qiime2/ARTIFACT_ID</em>.
+
 
 
