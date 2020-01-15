@@ -33,7 +33,7 @@ my $GetOptions = GetOptions(
 	'b|basename'             => \$opt_basename,
 );
 
-my $check_version = run("qiime --version 2>/dev/null", "Checking Qiime2 version");
+my $check_version = run("qiime --version 2>/dev/null", "Checking Qiime2 version: *qiime* command must be available for this script to work");
 ($check_version) = $check_version =~/version ([\.\w]+)/;
 print STDERR YELLOW "Checking QIIME2 version: ", RESET, " $check_version\n", RESET;
 
