@@ -25,7 +25,7 @@ perl $INSTALLDIR/qiime2tools/script_name.pl
 
 ### qzoom.pl
 
-Updated utility to extract data from Qiime 2 artifacts. See [qzoom_documentation.html](https://htmlpreview.github.io/?https://github.com/telatin/qiime2tools/blob/master/qzoom_documentation.html).
+Updated utility to extract data from Qiime 2 artifacts. See [qzoom_documentation.html](https://htmlpreview.github.io/?https://github.com/telatin/qiime2tools/blob/master/docs/qzoom_documentation.html).
 
 It works independently from Qiime2, its meant to automate common tasks (e.g. extract .biom file and automatically converts it to tsv). In progress.
 
