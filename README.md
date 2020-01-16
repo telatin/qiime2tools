@@ -10,10 +10,23 @@ repository is used to store experimental scripts to inspect or manipulate such a
 Updated utility to extract data from Qiime 2 artifacts. 
 See [qzoom documentation](https://github.com/telatin/qiime2tools/blob/master/docs/qzoom_readme.md).
 
-![Screenshot](docs/qzoom.png)
-
 It works independently from Qiime2, its meant to automate common tasks 
 (e.g. extract .*biom* file and automatically converts it to .*tsv* if the `biom` tool is available).  
+
+Screenshot in *info* mode:
+![Screenshot](docs/qzoom.png)
+
+#### Example usage
+
+Extract a set of visualizations into a directory. A subdirectory with the name of the visualization file will be created for each "qzv" artifact:
+```
+qzoom.pl -x -o ./html *.qzv
+```
+View the main file contained in each artifact:
+
+```
+qzoom.pl  *.qz?
+```
 
 ## Downloading this repository
 From the command line type the following command from the directory you want to have the repository copied in:
