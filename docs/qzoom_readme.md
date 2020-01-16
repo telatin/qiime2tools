@@ -1,36 +1,53 @@
-# NAME
+## NAME
 
 **qzoom.pl** - a helper utility to extract data from Qiime2 artifact
 
-# AUTHOR
+## AUTHOR
 
 Andrea Telatin <andrea@telatin.com>
 
-# SYNOPSIS
+## SYNOPSIS
 
-qzoom.pl \[options\] &lt;artifact\_file.qza/v>
+qzoom.pl \[options\] &lt;artifact1.qza/v> \[&lt;artifact2.qza ...\]
 
-# OPTIONS
+## OPTIONS
 
-> **-c, --cite** \[_PATH_\]
+### Main Actions
+
+> **-i, --info** 
 >
-> Print artifact citation to STDOUT or to file, is a filepath is provided
+> Print artifact citation to STDOUT or to file, is a filepath is provided. 
+> Enabled by default if no `--cite` or `--extract` are defined.
 >
-> **-x, --extract** \[_OUTDIR_\]
+> **-c, --cite** 
+>
+> Print artifact citation to STDOUT or to file. Specify -b FILE to save it.
+>
+> **-x, --extract** 
 >
 > Print the list of files in the 'data' directory. 
 > If a OUTDIR is provided, extract the content of the 'data' directory (i.e. the actual output of the artifact).
 > Will create the directory if not found. Will overwrite files in the directory.
->
-> **-i, --info**
->
-> Will print informations on the artifact.
 
-# BUGS
+### Other parameters
+
+> **-o, --outdir** _OUTDIR_
+>
+> Directory where to extract files (default: ./), to use with `-x`, `--extract`.
+>
+> **-b, --bibtex** _FILE_
+>
+> Save citations to a file (append), to use with `-c`, `--cite`.
+>
+> **--verbose**  
+>
+> Print verbose output.
+
+## BUGS
 
 Please report them to <andrea@telatin.com>
 
-# COPYRIGHT
+## COPYRIGHT
 
 Copyright (C) 2019 Andrea Telatin 
 

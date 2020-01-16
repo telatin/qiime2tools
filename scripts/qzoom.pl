@@ -6,7 +6,7 @@ use Getopt::Long;
 use File::Basename;
 use YAML::Tiny;
 use Data::Dumper;
-use Term::ANSIColor qw(:constants);
+use Term::ANSIColor qw(:constants color);
 our $AUTHOR  = 'Andrea Telatin';
 our $VERSION = '1.02';
 our $this_program = basename($0);
@@ -19,7 +19,8 @@ my ($opt_cite,
 	$opt_citation_file,
 	$opt_extract,
 	$opt_info,
-	);
+	$opt_verbose,
+);
 my $opt_outdir =  "./";
 my $result = GetOptions(
 	'd|data'      => \$opt_data,
@@ -32,6 +33,7 @@ my $result = GetOptions(
 
 	'debug'       => \$opt_debug,
 	'v|version'   => \$opt_version,
+	'verbose'     => \$opt_verbose,
 	'h|help'      => \$opt_help,
 );
 init();
@@ -41,16 +43,22 @@ usage() if not defined $ARGV[0];
 $opt_info = 1 if (!$opt_cite and !$opt_data and !$opt_extract);
 foreach my $opt_filename (@ARGV) {
 
-	our $artifact = getArtifact($opt_filename);
-	our $output;
 
 	debug(" - Loading <$opt_filename>");
-	if ( ! -f "$opt_filename") {
+
+	if ( ! -f "$opt_filename" ) {
 		say STDERR " - Skipping \"$opt_filename\": not found";
 		next;
 	}
+	if ($opt_filename !~/qz[av]$/) {
+		say STDERR " - Skipping \"$opt_filename\": not a .qza or .qzv file";
+		next;
+	}
 	 
-
+	our $basename = basename($opt_filename);
+	our $artifact = getArtifact($opt_filename);
+	our $output;
+	
 	if (defined $opt_cite) {
 		say " - getting citation " if ($opt_debug);
 		my $citation = getArtifactText($artifact->{id}.'/provenance/citations.bib', $opt_filename);
@@ -58,7 +66,7 @@ foreach my $opt_filename (@ARGV) {
 		$citation=~s/\n\n/\n/g;
 		if ($opt_citation_file) {
 			say STDERR "Saving citation to <$opt_cite>";
-			open my $outfile, '>', "$opt_citation_file" || die "FATAL ERROR:\nUnable to write citation to <$opt_citation_file>.\n";
+			open my $outfile, '>>', "$opt_citation_file" || die "FATAL ERROR:\nUnable to write citation to <$opt_citation_file>.\n";
 			print {$outfile} $citation;
 		} else {
 			say "$citation";
@@ -68,15 +76,23 @@ foreach my $opt_filename (@ARGV) {
 	if (defined $opt_data) {
 
 	}
+
 	if (defined $opt_info) {
-		say GREEN, $artifact->{id}, RESET, BOLD, "\t", $opt_filename, RESET;
-		if ($artifact->{type} eq 'Visualization') {
-			say BLUE "<HTML document>", RESET;
-		} else {
-			for my $f ( @{ $artifact->{data}}) {
-				say BLUE $f, RESET;
+		my $key = color('red'). '[HTML Visualization]';
+		my $list = '';
+
+		if ($artifact->{type} ne 'Visualization') {
+			if ( scalar @{ $artifact->{data}} == 1 ) {
+				$key = basename( ${ $artifact->{data}}[0] );
+			} else {
+				$key = '('. scalar @{ $artifact->{data}} . ' files)';
+				for my $f ( @{ $artifact->{data}}) {
+					$list .= basename($f), "\n";
+				}
 			}
-		}	
+		}
+		say GREEN, $artifact->{id}, RESET, "\t", $opt_filename, "\t", BOLD, $key ,RESET;
+		say list;
 		say Dumper $artifact if ($opt_debug);
 	} 
 	if (defined $opt_extract) {
@@ -89,36 +105,65 @@ foreach my $opt_filename (@ARGV) {
 			}
 		} else {
 			if (! -d "$opt_outdir") {
-				run( qq(mkdir "$opt_outdir"), [ 'description' => "Creating output directory <$opt_outdir>"] );
+				run( qq(mkdir "$opt_outdir"), { 'description' => "Creating output directory <$opt_outdir>" } );
 			} 
 
-			run(
-				qq(unzip -j  -o "$opt_filename" '$artifact->{id}/data/*' -d "$opt_outdir"),
-				{
-					'description' => "Extracting 'data' from $opt_filename to $opt_outdir",
-					'error'       => "Unable to extract data."
-				}
-			);
+			if (! $artifact->{type} eq 'Visualization') {
+				verbose("Extracting $opt_filename data");
+					run(
+						qq(unzip -j  -o "$opt_filename" '$artifact->{id}/data/*' -d "$opt_outdir"),
+						{
+							'description' => "Extracting 'data' from $opt_filename to $opt_outdir",
+							'error'       => "Unable to extract data."
+						}
+					);
 
-			#run(
-			#	qq(mv "$opt_outdir/$artifact->{id}/data/"* "$opt_outdir"),
-			#);
-			foreach my $i ( @{$artifact->{data} } ) {
-				#my $cmd = qq(unzip -o  "$opt_filename" '$artifact->{id}/$i" -d "$opt_outdir");
-				#run($cmd);
-				my $base = basename($i);
-				if ($base =~/\.biom/) {
-					my $out = $base;
-					$out =~s/biom/tsv/;
-					my $BiomConvert = qq(biom convert --to-tsv -i "$opt_outdir/$base" -o "$opt_outdir/$out");
-					
-					
-					run($BiomConvert, 
-					{
-							'description' => "Converting BIOM to TSV ($base)",
-							'error'       => "Unable to convert $opt_outdir/$base to TSV using 'biom' tool",
-					}) if ($biom_found);
-				}
+					#run(
+					#	qq(mv "$opt_outdir/$artifact->{id}/data/"* "$opt_outdir"),
+					#);
+					foreach my $i ( @{$artifact->{data} } ) {
+						#my $cmd = qq(unzip -o  "$opt_filename" '$artifact->{id}/$i" -d "$opt_outdir");
+						#run($cmd);
+						my $base = basename($i);
+						if ($base =~/\.biom/) {
+							my $out = $base;
+							$out =~s/biom/tsv/;
+							my $BiomConvert = qq(biom convert --to-tsv -i "$opt_outdir/$base" -o "$opt_outdir/$out");
+							
+							
+							run($BiomConvert, 
+							{
+									'description' => "Converting BIOM to TSV ($base)",
+									'error'       => "Unable to convert $opt_outdir/$base to TSV using 'biom' tool",
+							}) if ($biom_found);
+						}
+					}
+			} else {
+				my $destination_dir = $basename;
+				$destination_dir =~s/\./_/;
+
+				verbose("Extracting $opt_filename visualization");
+				run(
+					qq(unzip  -o "$opt_filename" '$artifact->{id}/data/*' -d "$opt_outdir"),
+						{
+							'description' => "Extracting 'data' from $opt_filename to $opt_outdir",
+							'error'       => "Unable to extract data."
+						}
+				);
+				run(
+					qq(mv "$opt_outdir"/$artifact->{id}/data/ "$opt_outdir/$destination_dir/"),
+						{
+							'description' => "Moving 'data' from $opt_filename to $opt_outdir",
+							'error'       => "Unable to move data."
+						}
+				);
+				run(
+					qq(rmdir "$opt_outdir"/$artifact->{id}/),
+						{
+							'description' => "Cleanup",
+							'error'       => "Unable to remove a supposedly empty directory."
+						}
+				);
 			}
 			
 
@@ -146,6 +191,7 @@ sub init {
     } else {
     	$biom_found = 1;
     }
+
 }
 
 sub version {
@@ -156,12 +202,22 @@ sub version {
  
 sub usage {
     # Short usage string in case of errors
-    print "$this_program -x artifact.qza\n";
+    print "To view info:
+$this_program  artifact.qza [artifact2.qzv ...]
+
+To extract data:
+$this_program -x -o OUTPUT_DIR artifact.qza [artifact2.qzv ...]
+
+--help for more info\n";
     exit 0;
 }
 
 sub debug {
 	say STDERR "~ $_[0]" if ($opt_debug);
+}
+
+sub verbose {
+	say STDERR "$_[0]" if ($opt_verbose);
 }
 
 sub getArtifactText {
@@ -185,7 +241,7 @@ sub getArtifact {
 	$options->{'error'}       = "Unable to get artifact content from 'unzip'";
 
 	my $artifact_raw = run(
-		qq(unzip -t "$filename"),
+		qq(unzip -t "$filename" 2>/dev/null),
 		$options
 	);
 	my $artifact_id;
@@ -267,41 +323,69 @@ sub checkBin {
 }
 __END__
  
-=head1 NAME
+=head2 NAME
  
 B<qzoom.pl> - a helper utility to extract data from Qiime2 artifact
  
-=head1 AUTHOR
+=head2 AUTHOR
  
 Andrea Telatin <andrea@telatin.com>
  
-=head1 SYNOPSIS
+=head2 SYNOPSIS
  
-qzoom.pl [options] <artifact_file.qza/v>
+qzoom.pl [options] <artifact1.qza/v> [<artifact2.qza ...]
  
-=head1 OPTIONS
+=head2 OPTIONS
  
+
+=head3 Main Actions
+
+
 =over 2
 
-B<-c, --cite> [I<PATH>]
+B<-i, --info> 
 
-Print artifact citation to STDOUT or to file, is a filepath is provided
+Print artifact citation to STDOUT or to file, is a filepath is provided. 
+Enabled by default if no C<--cite> or C<--extract> are defined.
 
-B<-x, --extract> [I<OUTDIR>]
+B<-c, --cite> 
+
+Print artifact citation to STDOUT or to file. Specify -b FILE to save it.
+
+B<-x, --extract> 
 
 Print the list of files in the 'data' directory. 
 If a OUTDIR is provided, extract the content of the 'data' directory (i.e. the actual output of the artifact).
 Will create the directory if not found. Will overwrite files in the directory.
 
+=back
 
- 
+
+=head3 Other parameters
+
+
+=over 2
+
+B<-o, --outdir> I<OUTDIR>
+
+Directory where to extract files (default: ./), to use with C<-x>, C<--extract>.
+
+B<-b, --bibtex> I<FILE>
+
+Save citations to a file (append), to use with C<-c>, C<--cite>.
+
+
+B<--verbose>  
+
+Print verbose output.
+
 =back
  
-=head1 BUGS
+=head2 BUGS
  
 Please report them to <andrea@telatin.com>
  
-=head1 COPYRIGHT
+=head2 COPYRIGHT
  
 Copyright (C) 2019 Andrea Telatin 
  
