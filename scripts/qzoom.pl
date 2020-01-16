@@ -6,6 +6,7 @@ use Getopt::Long;
 use File::Basename;
 use YAML::Tiny;
 use Data::Dumper;
+use Term::ANSIColor qw(:constants);
 our $AUTHOR  = 'Andrea Telatin';
 our $VERSION = '1.02';
 our $this_program = basename($0);
@@ -17,85 +18,117 @@ my ($opt_cite,
 	$opt_data,
 	$opt_citation_file,
 	$opt_extract,
+	$opt_info,
 	);
 my $opt_outdir =  "./";
 my $result = GetOptions(
 	'd|data'      => \$opt_data,
+	'i|info'      => \$opt_info,
 	'c|cite'      => \$opt_cite,
+	'b|bibtex=s'  => \$opt_citation_file,
+
  	'x|extract'   => \$opt_extract,
  	'o|outdir=s'  => \$opt_outdir,
+
 	'debug'       => \$opt_debug,
 	'v|version'   => \$opt_version,
 	'h|help'      => \$opt_help,
 );
-our $opt_filename = shift @ARGV;
 init();
-usage() if not defined $opt_filename;
-our $artifact = getArtifact($opt_filename);
-our $output;
 
+usage() if not defined $ARGV[0];
 
-if (defined $opt_cite) {
-	say " - getting citation " if ($opt_debug);
-	my $citation = getArtifactText($artifact->{id}.'/provenance/citations.bib');
-	$citation=~s/\n\n/\n/g;
-	if ($opt_citation_file) {
-		say STDERR "Saving citation to <$opt_cite>";
-		open my $outfile, '>', "$opt_cite" || die "FATAL ERROR:\nUnable to write citation to <$opt_cite>.\n";
-		print {$outfile} $citation;
-	} else {
-		say "$citation";
+$opt_info = 1 if (!$opt_cite and !$opt_data and !$opt_extract);
+foreach my $opt_filename (@ARGV) {
+
+	our $artifact = getArtifact($opt_filename);
+	our $output;
+
+	debug(" - Loading <$opt_filename>");
+	if ( ! -f "$opt_filename") {
+		say STDERR " - Skipping \"$opt_filename\": not found";
+		next;
 	}
-}
+	 
 
-if (defined $opt_extract) {
-	debug("Extracting artifact to $opt_outdir");
+	if (defined $opt_cite) {
+		say " - getting citation " if ($opt_debug);
+		my $citation = getArtifactText($artifact->{id}.'/provenance/citations.bib', $opt_filename);
 
-	if (0) {
-		say STDERR " - Specify output dir (-o) to extract the following files:";
-		foreach my $i ( @{$artifact->{data} } ) {
-			say  $i;
+		$citation=~s/\n\n/\n/g;
+		if ($opt_citation_file) {
+			say STDERR "Saving citation to <$opt_cite>";
+			open my $outfile, '>', "$opt_citation_file" || die "FATAL ERROR:\nUnable to write citation to <$opt_citation_file>.\n";
+			print {$outfile} $citation;
+		} else {
+			say "$citation";
 		}
-	} else {
-		if (! -d "$opt_outdir") {
-			run( qq(mkdir "$opt_outdir"), [ 'description' => "Creating output directory <$opt_outdir>"] );
-		} 
+	}
 
-		run(
-			qq(unzip -j  -o "$opt_filename" '$artifact->{id}/data/*' -d "$opt_outdir"),
-			{
-				'description' => "Extracting 'data' from $opt_filename to $opt_outdir",
-				'error'       => "Unable to extract data."
+	if (defined $opt_data) {
+
+	}
+	if (defined $opt_info) {
+		say GREEN, $artifact->{id}, RESET, BOLD, "\t", $opt_filename, RESET;
+		if ($artifact->{type} eq 'Visualization') {
+			say BLUE "<HTML document>", RESET;
+		} else {
+			for my $f ( @{ $artifact->{data}}) {
+				say BLUE $f, RESET;
 			}
-		);
+		}	
+		say Dumper $artifact if ($opt_debug);
+	} 
+	if (defined $opt_extract) {
+		debug("Extracting artifact to $opt_outdir");
 
-		#run(
-		#	qq(mv "$opt_outdir/$artifact->{id}/data/"* "$opt_outdir"),
-		#);
-		foreach my $i ( @{$artifact->{data} } ) {
-			#my $cmd = qq(unzip -o  "$opt_filename" '$artifact->{id}/$i" -d "$opt_outdir");
-			#run($cmd);
-			my $base = basename($i);
-			if ($base =~/\.biom/) {
-				my $out = $base;
-				$out =~s/biom/tsv/;
-				my $BiomConvert = qq(biom convert --to-tsv -i "$opt_outdir/$base" -o "$opt_outdir/$out");
-				
-				
-				run($BiomConvert, 
+		if (0) {
+			say STDERR " - Specify output dir (-o) to extract the following files:";
+			foreach my $i ( @{$artifact->{data} } ) {
+				say  $i;
+			}
+		} else {
+			if (! -d "$opt_outdir") {
+				run( qq(mkdir "$opt_outdir"), [ 'description' => "Creating output directory <$opt_outdir>"] );
+			} 
+
+			run(
+				qq(unzip -j  -o "$opt_filename" '$artifact->{id}/data/*' -d "$opt_outdir"),
 				{
-						'description' => "Converting BIOM to TSV ($base)",
-						'error'       => "Unable to convert $opt_outdir/$base to TSV using 'biom' tool",
-				}) if ($biom_found);
+					'description' => "Extracting 'data' from $opt_filename to $opt_outdir",
+					'error'       => "Unable to extract data."
+				}
+			);
+
+			#run(
+			#	qq(mv "$opt_outdir/$artifact->{id}/data/"* "$opt_outdir"),
+			#);
+			foreach my $i ( @{$artifact->{data} } ) {
+				#my $cmd = qq(unzip -o  "$opt_filename" '$artifact->{id}/$i" -d "$opt_outdir");
+				#run($cmd);
+				my $base = basename($i);
+				if ($base =~/\.biom/) {
+					my $out = $base;
+					$out =~s/biom/tsv/;
+					my $BiomConvert = qq(biom convert --to-tsv -i "$opt_outdir/$base" -o "$opt_outdir/$out");
+					
+					
+					run($BiomConvert, 
+					{
+							'description' => "Converting BIOM to TSV ($base)",
+							'error'       => "Unable to convert $opt_outdir/$base to TSV using 'biom' tool",
+					}) if ($biom_found);
+				}
 			}
+			
+
 		}
 		
-
 	}
-	
+
+
+
 }
-
-
 
 sub init {
 	$opt_version && version();
@@ -128,13 +161,13 @@ sub usage {
 }
 
 sub debug {
-	say STDERR " - $_[0]" if ($opt_debug);
+	say STDERR "~ $_[0]" if ($opt_debug);
 }
 
 sub getArtifactText {
-	my ($file) = @_;
+	my ($file, $filename) = @_;
 
-	my $filename = $opt_filename;
+	die "getArtifactText(x, y): y missing\n" unless (defined $filename);
 	
 	my $cmd_opt;
 	my $cmd = qq(unzip -p "$filename" "$file");
@@ -187,7 +220,7 @@ sub getArtifact {
 		}
 	}
 
-	my $yaml = YAML::Tiny->read_string( getArtifactText("$artifact_id/metadata.yaml") );
+	my $yaml = YAML::Tiny->read_string( getArtifactText("$artifact_id/metadata.yaml", $filename) );
 	$artifact->{'format'}  = $yaml->[0]->{format};
 	$artifact->{'type'}    = $yaml->[0]->{type};
 	$artifact->{'id'}      = $artifact_id;
@@ -205,9 +238,10 @@ sub run {
 
 	my $out = undef;
 	my @output = `$command`;
-	debug("[cmd]\t". $command);
+	debug("cmd:". $command);
+
 	if ($opt->{'description'}) {
-		debug("\t". $opt->{"description"}) 
+		debug("(". $opt->{"description"} .')') 
 	}  
 	if ($? and ! $opt->{no_die}) {
 		print STDERR "ERROR RUNNING EXTERNAL COMAND:\n";
