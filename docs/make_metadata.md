@@ -1,6 +1,10 @@
 ## NAME
 
-**make\_metadata.pl** - a script to draft a metadata table for Qiime 2 or Lotus
+**make\_metadata.pl** - a script to draft a metadata table for Qiime 2 or Lotus.
+
+The program will ensure that the proper number of files (1 or 2) is found for
+each sample, and that the sample ID (initial part of the filename) does not 
+contain unsupported chars.
 
 ## AUTHOR
 
@@ -20,10 +24,6 @@ make\_metadata.pl \[options\] -i INPUT\_DIR
 
     Input directory contains unpaired files (default is Paired-End mode)
 
-- **-l**, **--lotus**
-
-    Print metadata in LOTUS format (default: Qiime2)
-
 - **-1**, **--for-tag** STRING
 
     Tag to detect that a file is forward (default: \_R1)
@@ -35,6 +35,26 @@ make\_metadata.pl \[options\] -i INPUT\_DIR
 - **-d**, **--delim** STRING
 
     The sample ID is the filename up to the delimiter (default: \_)
+
+- **-a**, **--abs-path**
+
+    Include the absolute path to the metadata file
+
+- **-l**, **--lotus**
+
+    Print metadata in LOTUS format (default)
+
+- **-q**, **--qiime**
+
+    Print metadata in Qiime2 format (default: Lotus)
+
+- **-b**, **--barcode**
+
+    Add a placeholder for the barcode (default: NNNNNNNN, use -r for a random unique barcode)
+
+- **-r**, **--random-bc**
+
+    When adding a barcode (see `-b`), will generate a random unique sequence instead of NNNNNNNN
 
 ## BUGS
 
@@ -55,4 +75,4 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with this program.  If not, see &lt;http://www.gnu.org/licenses/>.
+along with this program.  If not, see [http://www.gnu.org/licenses/](http://www.gnu.org/licenses/).
