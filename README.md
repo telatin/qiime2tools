@@ -6,12 +6,12 @@ repository is used to store experimental scripts to inspect or manipulate such a
 
 ## Scripts
 
-### qzoom.pl
-Updated utility to extract data from Qiime 2 artifacts. See 
-[qzoom_documentation.html](https://htmlpreview.github.io/?https://github.com/telatin/qiime2tools/blob/master/docs/qzoom_documentation.html).
+### :package: qzoom.pl
+Updated utility to extract data from Qiime 2 artifacts. 
+See [qzoom_documentation.html](https://github.com/telatin/qiime2tools/blob/master/docs/qzoom_readme.md).
 
-It works independently from Qiime2, its meant to automate common tasks (e.g. extract /.biom/ file and automatically converts it to /.tsv/ if the 
-`biom`tool is available).  
+It works independently from Qiime2, its meant to automate common tasks 
+(e.g. extract .*biom* file and automatically converts it to .*tsv* if the `biom` tool is available).  
 
 ## Downloading this repository
 From the command line type the following command from the directory you want to have the repository copied in:
@@ -28,7 +28,7 @@ From the command line:
 perl $INSTALLDIR/qiime2tools/script_name.pl 
 ```
 
-## 
+
 ## Legacy scripts
 Some scripts were developed using Qiime2 2017.x, and they are now deprecated.
 
