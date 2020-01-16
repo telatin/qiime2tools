@@ -5,9 +5,14 @@ use warnings;
 use Pod::Usage;
 use Getopt::Long;
 use File::Basename;
-use YAML::Tiny;
+use FindBin qw($RealBin);
 use Data::Dumper;
 use Term::ANSIColor qw(:constants color);
+if (-d "$RealBin/lib") {
+	use lib "$RealBin/lib";
+}
+use YAML::Tiny;
+say $YAML::Tiny::VERSION;
 our $AUTHOR  = 'Andrea Telatin';
 our $VERSION = '1.10';
 our $this_program = basename($0);
