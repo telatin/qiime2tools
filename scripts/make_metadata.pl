@@ -10,13 +10,18 @@ use File::Spec;
 use Term::ANSIColor qw(:constants);
 use Pod::Usage;
 my ($R, $N);          # Color reset / Reset and newline
-
+my @nums = (0..9,'a'..'z','A'..'Z');
+my %nums = map { $nums[$_] => $_ } 0..$#nums;
 my (
     $opt_input_directory,
     $opt_single_end,
     $opt_debug,
     $opt_lotus,
     $opt_help,
+    $opt_qiime,
+    $opt_abs_path,
+    $opt_barcode,
+    $opt_random_bc,
 );
 my $opt_for_tag = "_R1";
 my $opt_rev_tag = "_R2";
@@ -29,12 +34,20 @@ my $_opt = GetOptions(
     '2|rev-tag=s'   => \$opt_rev_tag,
     's|single-end'  => \$opt_single_end,
     'd|id-delim=s'  => \$opt_sample_id_delimiter,
+    'a|abs-path'    => \$opt_abs_path,
+    'b|barcode'     => \$opt_barcode,
+    'r|random-bc'   => \$opt_random_bc,
     'l|lotus'       => \$opt_lotus,
+    'q|qiime'       => \$opt_qiime,
     'debug'         => \$opt_debug,
     'h|help'        => \$opt_help,
 );
 pod2usage({-exitval => 0, -verbose => 2}) if $opt_help;
 
+
+ 
+die " Please specify either --lotus OR --qiime as output format\n" if ($opt_lotus and $opt_qiime);
+$opt_lotus = 1 if ((not $opt_lotus) and (not $opt_qiime));
 unless (defined $opt_input_directory) {
     die " FATAL ERROR:\n Please specify input directory (-i DIR, --reads DIR)\n";
 }
@@ -94,10 +107,30 @@ for my $id (sort keys %samples) {
         $file_tag = basename($samples{$id}{'R1'}) . ',' . basename($file_tag = $samples{$id}{'R2'});
         $abs_file_tag     = $samples{$id}{'R1'} . ',' . $file_tag = $samples{$id}{'R2'};
     }
+
+    # barcode
+    my $bc = '';
+    if ($opt_barcode) {
+            if ($opt_random_bc) {
+                $bc = "\t".random_barcode($sample_count);
+            } else {
+                $bc = "\tNNNNNNNN";
+            }
+    }
+    
+    # absolute path
+    my $abs = '';
+    $abs = "\t$abs_file_tag" if ($opt_abs_path);
+
     if ($opt_lotus) {
-        $mapping_file .= "$id\t$file_tag\t$abs_file_tag\n";
+        # Generate LOTUS sample
+
+
+
+        $mapping_file .= "$id\t$file_tag$abs$bc\n";
     } else {
-        $mapping_file .= "$id\tNNNNNNNN\tTreatment\n";
+        # Generate QIIME output
+        $mapping_file .= "${id}${abs}${bc}\tTreatment\n";
     }
     
 }
@@ -135,12 +168,35 @@ sub validate_id($) {
 }
 
 sub qiime2_header {
-    return "sample-id\tbarcode-sequence\ttreatment
-#q2:types\tcategorical\tcategorical\n";
+    my %bc = (
+        name => '',
+        type => '',
+    );
+    my %abs = (
+        name => '',
+        type => '',
+    );
+
+
+    if ($opt_barcode) {
+        $bc{'name'} = "barcode-sequence\t";
+        $bc{'type'} = "categorical\t";
+    }
+
+    if ($opt_abs_path) {
+        $abs{'name'} = "fastq-file-path\t";
+        $abs{'type'} = "categorical\t";       
+    }
+    return "#sample-id\t$abs{name}$bc{name}treatment
+#q2:types\t$abs{type}$bc{type}categorical\n";
 }
 
 sub lotus_header {
-    return "#SampleID\tfastqFile\tfastqFilePath\n";
+    my $abs = '';
+    my $bc  = '';
+    $bc = "\tbarcode" if ($opt_barcode);
+    $abs = "\tfastqFilePath" if ($opt_abs_path);
+    return "#SampleID\tfastqFile$abs$bc\n";
 }
 BEGIN { 
     $R = Term::ANSIColor::color('reset');
@@ -151,6 +207,34 @@ BEGIN {
     }
 }
 
+sub random_barcode {
+    
+    my $count = shift @_;
+    my @dna = ('A', 'C', 'G', 'T');
+    my $base4  = to_base(4, $count);
+    my $number = sprintf("%05d", $base4);
+    my $bc = '';
+    for (my $i = 0; $i < length($number); $i++) {
+        $bc .= $dna[ substr($number, $i, 1)] . $dna[ rand(3) ];
+    }
+    return $bc;
+}
+
+ 
+sub to_base {
+        my $base   = shift;
+        my $number = shift;
+        return $nums[0] if $number == 0;
+        my $rep = ""; # this will be the end value.
+        while( $number > 0 )
+        {
+            $rep = $nums[$number % $base] . $rep;
+            $number = int( $number / $base );
+        }
+        return $rep;
+}
+ 
+  
 __END__
 
  
@@ -182,14 +266,9 @@ Path to the directory containing the FASTQ files
 
 Input directory contains unpaired files (default is Paired-End mode)
 
-=item B<-l>, B<--lotus>
-
-Print metadata in LOTUS format (default: Qiime2)
-
 =item B<-1>, B<--for-tag> STRING
 
 Tag to detect that a file is forward (default: _R1)
-
 
 =item B<-2>, B<--rev-tag> STRING
 
@@ -198,6 +277,26 @@ Tag to detect that a file is forward (default: _R2)
 =item B<-d>, B<--delim> STRING
 
 The sample ID is the filename up to the delimiter (default: _)
+
+=item B<-a>, B<--abs-path>
+
+Include the absolute path to the metadata file
+
+=item B<-l>, B<--lotus>
+
+Print metadata in LOTUS format (default)
+
+=item B<-q>, B<--qiime>
+
+Print metadata in Qiime2 format (default: Lotus)
+
+=item B<-b>, B<--barcode>
+
+Add a placeholder for the barcode (default: NNNNNNNN, use -r for a random unique barcode)
+
+=item B<-r>, B<--random-bc>
+
+When adding a barcode (see C<-b>), will generate a random unique sequence instead of NNNNNNNN
 
 
 =back
