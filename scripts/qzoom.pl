@@ -1,6 +1,7 @@
 #!/usr/bin/env perl
 
-use v5.16;
+use 5.016;
+use warnings;
 use Pod::Usage;
 use Getopt::Long;
 use File::Basename;
@@ -8,7 +9,7 @@ use YAML::Tiny;
 use Data::Dumper;
 use Term::ANSIColor qw(:constants color);
 our $AUTHOR  = 'Andrea Telatin';
-our $VERSION = '1.02';
+our $VERSION = '1.10';
 our $this_program = basename($0);
 our $biom_found = 0;
 my ($opt_cite,
@@ -47,18 +48,18 @@ foreach my $opt_filename (@ARGV) {
 	debug(" - Loading <$opt_filename>");
 
 	if ( ! -f "$opt_filename" ) {
-		say STDERR " - Skipping \"$opt_filename\": not found";
+		say STDERR " - Skipping \"$opt_filename\": not found" if ($opt_verbose);
 		next;
 	}
 	if ($opt_filename !~/qz[av]$/) {
-		say STDERR " - Skipping \"$opt_filename\": not a .qza or .qzv file";
+		say STDERR " - Skipping \"$opt_filename\": not a .qza or .qzv file"if ($opt_verbose);
 		next;
 	}
 	 
 	our $basename = basename($opt_filename);
 	our $artifact = getArtifact($opt_filename);
 	our $output;
-	
+
 	if (defined $opt_cite) {
 		say " - getting citation " if ($opt_debug);
 		my $citation = getArtifactText($artifact->{id}.'/provenance/citations.bib', $opt_filename);
@@ -74,7 +75,12 @@ foreach my $opt_filename (@ARGV) {
 	}
 
 	if (defined $opt_data) {
-
+		say BOLD $opt_filename, RESET;
+		my $c=0;
+		for my $file (@{ $artifact->{data} }) {
+			$c++;
+			say "$c\t$file";
+		}
 	}
 
 	if (defined $opt_info) {
@@ -86,13 +92,13 @@ foreach my $opt_filename (@ARGV) {
 				$key = basename( ${ $artifact->{data}}[0] );
 			} else {
 				$key = '('. scalar @{ $artifact->{data}} . ' files)';
-				for my $f ( @{ $artifact->{data}}) {
-					$list .= basename($f), "\n";
-				}
+				#for my $f ( @{ $artifact->{data}}) {
+				#	$list .= basename($f). "\n";
+				#}
 			}
 		}
 		say GREEN, $artifact->{id}, RESET, "\t", $opt_filename, "\t", BOLD, $key ,RESET;
-		say list;
+		 
 		say Dumper $artifact if ($opt_debug);
 	} 
 	if (defined $opt_extract) {
@@ -357,6 +363,11 @@ B<-x, --extract>
 Print the list of files in the 'data' directory. 
 If a OUTDIR is provided, extract the content of the 'data' directory (i.e. the actual output of the artifact).
 Will create the directory if not found. Will overwrite files in the directory.
+
+B<-d, --data> 
+
+List all the files contained in the ./data directory of the artifacts
+
 
 =back
 

@@ -8,7 +8,9 @@ repository is used to store experimental scripts to inspect or manipulate such a
 
 ### :package: qzoom.pl
 Updated utility to extract data from Qiime 2 artifacts. 
-See [qzoom_documentation.html](https://github.com/telatin/qiime2tools/blob/master/docs/qzoom_readme.md).
+See [qzoom documentation](https://github.com/telatin/qiime2tools/blob/master/docs/qzoom_readme.md).
+
+![Screenshot](docs/qzoom.png)
 
 It works independently from Qiime2, its meant to automate common tasks 
 (e.g. extract .*biom* file and automatically converts it to .*tsv* if the `biom` tool is available).  
