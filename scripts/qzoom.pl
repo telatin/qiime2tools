@@ -15,27 +15,31 @@ my ($opt_cite,
 	$opt_version, 
 	$opt_debug,
 	$opt_data,
+	$opt_citation_file,
+	$opt_extract,
 	);
 my $opt_outdir =  "./";
 my $result = GetOptions(
 	'd|data'      => \$opt_data,
-	'c|cite:s'    => \$opt_cite,
- 	'x|extract:s' => \$opt_outdir,
+	'c|cite'      => \$opt_cite,
+ 	'x|extract'   => \$opt_extract,
+ 	'o|outdir=s'  => \$opt_outdir,
 	'debug'       => \$opt_debug,
 	'v|version'   => \$opt_version,
 	'h|help'      => \$opt_help,
 );
 our $opt_filename = shift @ARGV;
 init();
-
+usage() if not defined $opt_filename;
 our $artifact = getArtifact($opt_filename);
 our $output;
 
 
 if (defined $opt_cite) {
+	say " - getting citation " if ($opt_debug);
 	my $citation = getArtifactText($artifact->{id}.'/provenance/citations.bib');
 	$citation=~s/\n\n/\n/g;
-	if (length($opt_cite)>0) {
+	if ($opt_citation_file) {
 		say STDERR "Saving citation to <$opt_cite>";
 		open my $outfile, '>', "$opt_cite" || die "FATAL ERROR:\nUnable to write citation to <$opt_cite>.\n";
 		print {$outfile} $citation;
@@ -44,8 +48,11 @@ if (defined $opt_cite) {
 	}
 }
 
-if (defined $opt_outdir) {
-	if (length($opt_outdir)==0) {
+if (defined $opt_extract) {
+	debug("Extracting artifact to $opt_outdir");
+
+	if (0) {
+		say STDERR " - Specify output dir (-o) to extract the following files:";
 		foreach my $i ( @{$artifact->{data} } ) {
 			say  $i;
 		}
@@ -55,25 +62,28 @@ if (defined $opt_outdir) {
 		} 
 
 		run(
-			qq(unzip -o "$opt_filename" '$artifact->{id}/data/*' -d "$opt_outdir"),
-			[
+			qq(unzip -j  -o "$opt_filename" '$artifact->{id}/data/*' -d "$opt_outdir"),
+			{
 				'description' => "Extracting 'data' from $opt_filename to $opt_outdir",
 				'error'       => "Unable to extract data."
-			]
+			}
 		);
 
-		run(
-			qq(mv "$opt_outdir/$artifact->{id}/data/"* "$opt_outdir"),
-		);
+		#run(
+		#	qq(mv "$opt_outdir/$artifact->{id}/data/"* "$opt_outdir"),
+		#);
 		foreach my $i ( @{$artifact->{data} } ) {
 			#my $cmd = qq(unzip -o  "$opt_filename" '$artifact->{id}/$i" -d "$opt_outdir");
 			#run($cmd);
 			my $base = basename($i);
 			if ($base =~/\.biom/) {
-				my $BiomConvert = qq(biom convert --to-tsv -i "$opt_outdir/$base" -o "$opt_outdir/$base.tsv");
+				my $out = $base;
+				$out =~s/biom/tsv/;
+				my $BiomConvert = qq(biom convert --to-tsv -i "$opt_outdir/$base" -o "$opt_outdir/$out");
 				
 				
-				run($BiomConvert, {
+				run($BiomConvert, 
+				{
 						'description' => "Converting BIOM to TSV ($base)",
 						'error'       => "Unable to convert $opt_outdir/$base to TSV using 'biom' tool",
 				}) if ($biom_found);
@@ -107,12 +117,18 @@ sub init {
 
 sub version {
     # Display version if needed
-    die "$this_program $VERSION ($AUTHOR)\n";
+    print "$this_program $VERSION ($AUTHOR)\n";
+     exit 0;
 }
  
 sub usage {
     # Short usage string in case of errors
-    die "$this_program --kmer=KMERLEN --peak=PEAK --fastq=fastq [--fastq=fastq]\n";
+    print "$this_program -x artifact.qza\n";
+    exit 0;
+}
+
+sub debug {
+	say STDERR " - $_[0]" if ($opt_debug);
 }
 
 sub getArtifactText {
@@ -185,8 +201,14 @@ sub getArtifact {
 #unzip -p relative-table-ASV.qza ffc46e8f-1ae4-4a4a-af5d-c2593d32aa52/data/feature-table.biom | file -
 sub run {
 	my ($command, $opt) = @_;
+	return 0 unless $command;
+
 	my $out = undef;
 	my @output = `$command`;
+	debug("[cmd]\t". $command);
+	if ($opt->{'description'}) {
+		debug("\t". $opt->{"description"}) 
+	}  
 	if ($? and ! $opt->{no_die}) {
 		print STDERR "ERROR RUNNING EXTERNAL COMAND:\n";
 		print STDERR "Command: '$command' (",$opt->{'description'},")\n";
