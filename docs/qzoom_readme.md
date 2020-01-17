@@ -14,20 +14,24 @@ qzoom.pl \[options\] &lt;artifact1.qza/v> \[&lt;artifact2.qza ...\]
 
 ### Main Actions
 
-> **-i, --info** 
+> **-i, --info**
 >
-> Print artifact citation to STDOUT or to file, is a filepath is provided. 
+> Print artifact citation to STDOUT or to file, is a filepath is provided.
 > Enabled by default if no `--cite` or `--extract` are defined.
 >
-> **-c, --cite** 
+> **-c, --cite**
 >
 > Print artifact citation to STDOUT or to file. Specify -b FILE to save it.
 >
-> **-x, --extract** 
+> **-x, --extract**
 >
-> Print the list of files in the 'data' directory. 
+> Print the list of files in the 'data' directory.
 > If a OUTDIR is provided, extract the content of the 'data' directory (i.e. the actual output of the artifact).
 > Will create the directory if not found. Will overwrite files in the directory.
+>
+> **-d, --data**
+>
+> List all the files contained in the ./data directory of the artifacts
 
 ### Other parameters
 
@@ -39,7 +43,13 @@ qzoom.pl \[options\] &lt;artifact1.qza/v> \[&lt;artifact2.qza ...\]
 >
 > Save citations to a file (append), to use with `-c`, `--cite`.
 >
-> **--verbose**  
+> **-r, --rename**
+>
+> Rename the content of the artifact to {artifactbasename}.{ext}.
+> Used with `-x` will extract `dna-sequences.fasta` from `dada2repseq.qza` as
+> `dada2repseq.fasta`. Only works with single file artifacts.
+>
+> **--verbose**
 >
 > Print verbose output.
 
@@ -49,7 +59,7 @@ Please report them to <andrea@telatin.com>
 
 ## COPYRIGHT
 
-Copyright (C) 2019 Andrea Telatin 
+Copyright (C) 2019 Andrea Telatin
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
