@@ -7,6 +7,7 @@ use FindBin qw($Bin);
 
 my $file = "$Bin/../data/table.qza";
 my $id   = 'd27b6a68-5c6e-46d9-9866-7b4d46cca533';
+my $version = "2018.6.0";
 print "$file\n";
 
 SKIP: {
@@ -20,6 +21,7 @@ SKIP: {
 	}
 
 	ok($artifact->{data}[0], "Artifact contains data");
+	ok($artifact->{version} eq $version, 'Artifact has correct version: '. $artifact->{version} );
 }
 
 done_testing();
