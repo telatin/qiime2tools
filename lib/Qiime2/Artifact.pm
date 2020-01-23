@@ -12,7 +12,7 @@ use YAML::PP;
 use Capture::Tiny ':all';
 use File::Basename;
 
-$Qiime2::Artifact::VERSION = '1.00';
+$Qiime2::Artifact::VERSION = '0.10';
 
 sub crash($);
 
@@ -82,7 +82,7 @@ sub _read_artifact {
     if ($line=~/testing:\s+(.+?)\s+OK/) {
       my ($id, $root, @path) = split /\//, $1;
 
-      crash "$self->{filename} is not a valid artifact:\n  \"{id}/directory/data\" structure expected, found:\n  \"$1\"" unless (defined $path[0]);
+      crash "$self->{filename} is not a valid artifact:\n  \"{id}/directory/data\" structure expected, found:\n  \"$1\"" unless (defined $root);
       my $stripped_path = $root;
       $stripped_path.= '/' . join('/', @path) if ($path[0]);
       $artifact_files{$stripped_path} = $1;
@@ -115,36 +115,35 @@ sub _read_artifact {
     crash("No data found in artifact $self->{filename}");
   }
   $self->{id} = $artifact_id;
-  my $auto = YAMLLoad( $self->getArtifactText($self->{id} .'/provenance/action/action.yaml') , $self->{id} .'/provenance/action/action.yaml' );
+  my $auto = YAMLLoad( $self->_getArtifactText($self->{id} .'/provenance/action/action.yaml') , $self->{id} .'/provenance/action/action.yaml' );
   $self->{parents}->{self} = $auto->{action};
 
   for my $key (keys %artifact_parents) {
     # key=fa0cb712-1940-4971-9e7c-a08581e948ed
-    my $parent = $self->get_parent($key);
+    my $parent = $self->_get_parent($key);
     $self->{parents}->{$key} = $parent;
   }
 
   # Trace ancestry
   @{ $self->{ancestry} } = ();
   $self->{ancestry}[0] = [ $self->{id} ];
-
-
   for my $input (@{$self->{parents}->{self}->{inputs}}) {
       for my $key (sort keys %{ $input }) {
-
         push @{ $self->{ancestry}[1] }, $$input{ $key };
       }
   }
 
-
-  while ($self->tree) {
+  while ($self->_tree) {
     $self->{ancestry_levels}++;
   }
 
+  my $root_version = _getArtifactText($self, $self->{id}.'/VERSION');
+  $self->{version} = $1 if ($root_version=~/framework:\s*\"?(.+)\"?/);
+  $self->{archive} = $1 if ($root_version=~/archive:\s*\"?(.+)\"?/);
   $self->{loaded} = 1;
 }
 
-sub tree {
+sub _tree {
   my $self = $_[0];
   my $last_array = $self->{ancestry}[-1];
   return 0 unless ( ${ $last_array}[0] );
@@ -172,7 +171,7 @@ sub _check_output {
   }
 }
 
-sub get_parent {
+sub _get_parent {
   my ($self, $key) = @_;
   my $parent;
 
@@ -180,11 +179,11 @@ sub get_parent {
   my $action;
   # metadata= [id]/provenance/artifacts/[key]/metadata.yaml
   my $metadata_file = $self->{id} . "/provenance/artifacts/" . $key . '/metadata.yaml';
-  $metadata = YAMLLoad( $self->getArtifactText($metadata_file), $metadata_file );
+  $metadata = YAMLLoad( $self->_getArtifactText($metadata_file), $metadata_file );
 
   # action = [id]/provenance/artifacts/[key]/action/action.yaml
   my $action_file = $self->{id} . "/provenance/artifacts/" . $key . '/action/action.yaml';
-  $action = YAMLLoad( $self->getArtifactText($action_file), $action_file );
+  $action = YAMLLoad( $self->_getArtifactText($action_file), $action_file );
 
   $parent->{metadata} = $metadata;
 
@@ -202,7 +201,7 @@ sub get_parent {
   return $parent;
 }
 
-sub getArtifactText {
+sub _getArtifactText {
   my ($self, $file) = @_;
   my $command = qq(unzip -p "$self->{filename}" "$file" );
   my $out = _run($command);
@@ -210,6 +209,7 @@ sub getArtifactText {
 
   return $out->{stdout};
 }
+
 sub _run {
   my ($command, $opt) = @_;
   return 0 unless defined $command;
@@ -292,6 +292,14 @@ Load artifact from file. Parameters are: I<filename> (required).
 =item B<id> I<(string)>
 
 Artifact ID (example: C<cfdc04fb-9c26-40c1-a03b-88f79e5735f1>)
+
+=item B<version> I<(string)>
+
+Artifact ID (example: C<2019.10.0>), from the VERSION file
+
+=item B<archive> I<(int)>
+
+Artifact archive version, from the VERSION file
 
 =item B<filename> I<(string)>
 
