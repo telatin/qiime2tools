@@ -1,2 +1,8 @@
+0.10.2	2020-01-23
+	* Renamed module to Qiime2::Artifact
+
+0.10.1	2020-01-23
+	* Update dist.ini configuration
+
 0.10.0	2020-01-23	
 	* Pre-release
