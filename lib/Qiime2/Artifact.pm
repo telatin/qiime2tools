@@ -12,7 +12,7 @@ use YAML::PP;
 use Capture::Tiny ':all';
 use File::Basename;
 
-$Qiime2::Artifact::VERSION = '0.10';
+$Qiime2::Artifact::VERSION = '0.10.0';
 
 sub crash($);
 
