@@ -6,6 +6,12 @@
 Welcome to Qiime2::Artifact's documentation!
 ============================================
 
+What is Qiime2::Artifact
+------------------------
+
+Qiime2::Artifact is a Perl module to read Qiime2 artifacts and extract metadata
+from them.
+
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
