@@ -22,28 +22,28 @@ my $_opt = GetOptions(
 my $file;
 if (-e "$ARGV[0]") {
   $file = $ARGV[0];
-} else {
+} elsif (-e "$RealBin/../example/table.qza") {
   $file = "$RealBin/../example/table.qza";
+} else {
+  die "Specify artifact\n";
 }
-my $artifact = Qiime2::Artifact->new( { filename => "$file" });
+my $artifact = Qiime2::Artifact->new( { filename => "$file", debug => 1 });
 
 
 if ($opt_dump) {
 
   say serialize($artifact);
+
 }  else {
 
   say 'FILENAME: [',  $artifact->{filename}, ']';
-  say 'METHOD: [',$artifact->id, ']';
-  say 'ATTRIB: [',$artifact->{loaded}, ']';
+  say 'ID:       [',$artifact->id, ']';
 
-  for (my $i = 0; $i <= @{ $artifact->{ancestry} }; $i++) {
-    say "== $i";
-    say Dumper $artifact->{ancestry}[$i];
-  }
-  say YELLOW Dumper $artifact->{ancestry};
+  say 'ORIGINAL: [',$artifact->{imported}, ']';
+  say 'PARENTS:  [',$artifact->{parents}, ']';
+  s
+  say GREEN,  Dumper $artifact->{ancestry};
   say RESET '';
-
 }
 
 

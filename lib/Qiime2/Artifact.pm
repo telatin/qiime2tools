@@ -12,7 +12,7 @@ use YAML::PP;
 use Capture::Tiny ':all';
 use File::Basename;
 
-$Qiime2::Artifact::VERSION = '0.10.2';
+$Qiime2::Artifact::VERSION = '0.10.3';
 
 sub crash($);
 
@@ -41,6 +41,7 @@ sub new {
 
     my $object = bless $self, $class;
 
+
     _read_artifact($object);
 
 
@@ -66,45 +67,47 @@ sub _read_artifact {
 		crash "_read_artifact: filename not defined $self";
 	}
 
+  # Read files content in the artifact
   my $artifact_raw = _run( qq(unzip -t "$self->{filename}" ));
+      if ($artifact_raw->{status} != 0) {
+        # Unzip -t failed: not a zip file
+        crash("$self->{filename} is not a ZIP file");
+      }
 
-  if ($artifact_raw->{status} != 0) {
-    # Unzip -t failed: not a zip file
-    crash("$self->{filename} is not a ZIP file");
-  }
   my $artifact_id;
 	my @artifact_data;
 	my %artifact_parents;
 	my %artifact_files;
 
+  # Read all files
   for my $line ( @{$artifact_raw->{'lines'}} ) {
     chomp($line);
     if ($line=~/testing:\s+(.+?)\s+OK/) {
-      my ($id, $root, @path) = split /\//, $1;
+        my ($id, $root, @path) = split /\//, $1;
 
-      crash "$self->{filename} is not a valid artifact:\n  \"{id}/directory/data\" structure expected, found:\n  \"$1\"" unless (defined $root);
-      my $stripped_path = $root;
-      $stripped_path.= '/' . join('/', @path) if ($path[0]);
-      $artifact_files{$stripped_path} = $1;
+        crash "$self->{filename} is not a valid artifact:\n  \"{id}/directory/data\" structure expected, found:\n  \"$1\"" unless (defined $root);
+        my $stripped_path = $root;
+        $stripped_path.= '/' . join('/', @path) if ($path[0]);
+        $artifact_files{$stripped_path} = $1;
 
-      if (! defined $artifact_id) {
-        $artifact_id = $id;
-      } elsif ($artifact_id ne $id) {
-        crash "Artifact format error: Artifact $self->{filename} has multiple roots ($artifact_id but also $id).\n";
-      }
-      if ($root eq 'data') {
-        if (basename($stripped_path) eq 'index.html') {
-          $self->{visualization} = 1;
+        if (! defined $artifact_id) {
+          $artifact_id = $id;
+        } elsif ($artifact_id ne $id) {
+          crash "Artifact format error: Artifact $self->{filename} has multiple roots ($artifact_id but also $id).\n";
         }
-        push(@artifact_data, basename($stripped_path));
+        if ($root eq 'data') {
+          if (basename($stripped_path) eq 'index.html') {
+            $self->{visualization} = 1;
+          }
+          push(@artifact_data, basename($stripped_path));
 
 
-      } elsif ($root eq 'provenance') {
-        if ($path[0] eq 'artifacts') {
-          $artifact_parents{$path[1]}++;
+        } elsif ($root eq 'provenance') {
+          if ($path[0] eq 'artifacts') {
+            $artifact_parents{$path[1]}++;
+          }
+
         }
-
-      }
 
     }
   }
@@ -115,39 +118,94 @@ sub _read_artifact {
     crash("No data found in artifact $self->{filename}");
   }
   $self->{id} = $artifact_id;
-  my $auto = YAMLLoad( $self->_getArtifactText($self->{id} .'/provenance/action/action.yaml') , $self->{id} .'/provenance/action/action.yaml' );
+  my $auto = _YAMLLoad( $self->_getArtifactText($self->{id} .'/provenance/action/action.yaml') , $self->{id} .'/provenance/action/action.yaml' );
   $self->{parents}->{self} = $auto->{action};
 
-  for my $key (keys %artifact_parents) {
-    # key=fa0cb712-1940-4971-9e7c-a08581e948ed
+  crash("No self parent") if (not defined $self->{parents}->{self});
+
+  for my $key (keys %artifact_parents) {    # key=fa0cb712-1940-4971-9e7c-a08581e948ed
     my $parent = $self->_get_parent($key);
     $self->{parents}->{$key} = $parent;
   }
 
-  # Trace ancestry
-  @{ $self->{ancestry} } = ();
-  $self->{ancestry}[0] = [ $self->{id} ];
-  for my $input (@{$self->{parents}->{self}->{inputs}}) {
-      for my $key (sort keys %{ $input }) {
-        push @{ $self->{ancestry}[1] }, $$input{ $key };
-      }
-  }
 
-  while ($self->_tree) {
-    $self->{ancestry_levels}++;
-  }
+  $self->{ancestry} = _getAncestry($self);
+
+  $self->{version} = 'Unknown';$self->{version} = 'archive';
 
   my $root_version = _getArtifactText($self, $self->{id}.'/VERSION');
   $self->{version} = $1 if ($root_version=~/framework:\s*\"?(.+)\"?/);
   $self->{archive} = $1 if ($root_version=~/archive:\s*\"?(.+)\"?/);
   $self->{loaded} = 1;
+  $self->{parents} = (scalar keys %{ $self->{parents} })-1;
+
+}
+
+
+sub _getAncestry {
+  my ($self) = @_;
+  my $output;
+  my %found = ();
+
+  # Direct parents
+  $output->{objects}[0] = [ $self->{id} ];
+
+  $self->{imported} = 0;
+  if ($self->{parents}->{self}->{type} eq 'import' ) {
+      $self->{imported} = 1;
+
+  }
+
+
+  # Hack for taxonomy.qzv
+  if ($self->{parents}->{self}->{type} eq 'visualizer') {
+        for my $hash (@{ $self->{parents}->{self}->{parameters} }) {
+          if (defined $hash->{input} ) {
+            my ($id) = split /:/, $hash->{input};
+            push @{$output->{objects}[1]}, $id if (defined $id);
+          }
+        }
+  }
+
+  for my $input (@{$self->{parents}->{self}->{inputs}}) {
+
+     for my $key (sort keys %{ $input }) {
+       push @{ $output->{objects}[1] }, $$input{ $key } if (defined $$input{ $key });
+     }
+  }
+
+  # Loop
+  my $parents = 1;
+
+  while ($parents) {
+    $parents = 0;
+    my $last_index = $#{ $output->{objects} };
+    for my $item ( @{ $output->{objects}[$last_index] } ) {
+
+
+      if ( defined $self->{parents}->{$item}->{from} ) {
+        $parents++;
+        foreach my $child ( @{ $self->{parents}->{$item}->{from} } ) {
+          if (defined $child) {
+            push( @{ $output->{objects}[$last_index + 1 ] }, $child) if ($found{$child});
+            $found{$child}++;
+          }
+        }
+      } else {
+        $parents = 0;
+      }
+    }
+  }
+  return $output;
 }
 
 sub _tree {
   my $self = $_[0];
+
   my $last_array = $self->{ancestry}[-1];
   return 0 unless ( ${ $last_array}[0] );
 
+  say ">>> @{$self->{ancestry}[-1]}";
   foreach my $item (@{$self->{ancestry}[-1]}) {
     if (defined $self->{parents}->{$item}->{from}) {
       push @{$self->{ancestry}}, $self->{parents}->{$item}->{from};
@@ -158,6 +216,7 @@ sub _tree {
   }
   return 0;
 }
+
 sub _check_output {
   # check if a command has a string in the output
   my ($cmd, $pattern) = @_;
@@ -179,18 +238,16 @@ sub _get_parent {
   my $action;
   # metadata= [id]/provenance/artifacts/[key]/metadata.yaml
   my $metadata_file = $self->{id} . "/provenance/artifacts/" . $key . '/metadata.yaml';
-  $metadata = YAMLLoad( $self->_getArtifactText($metadata_file), $metadata_file );
+  $metadata = _YAMLLoad( $self->_getArtifactText($metadata_file), $metadata_file );
 
   # action = [id]/provenance/artifacts/[key]/action/action.yaml
   my $action_file = $self->{id} . "/provenance/artifacts/" . $key . '/action/action.yaml';
-  $action = YAMLLoad( $self->_getArtifactText($action_file), $action_file );
+  $action = _YAMLLoad( $self->_getArtifactText($action_file), $action_file );
 
   $parent->{metadata} = $metadata;
 
   $parent->{action} = $action->{action};
-  #for my $key (keys %{$action}) {
-  #  $parent->{$key}   = $action->{$key};
-  #}
+
 
   for my $input (@{$action->{action}->{inputs}}) {
       for my $key (sort keys %{ $input }) {
@@ -231,7 +288,14 @@ sub _run {
   return $out;
 }
 
-sub YAMLLoad {
+
+sub debug {
+  my ($self, $msg, $opt) = @_;
+  return 0 if not defined $self->{debug};
+  say STDERR GREEN, BOLD, '| ', RESET, $msg;
+}
+
+sub _YAMLLoad {
   my ($string, $info) = @_;
   my $ypp = YAML::PP->new;
 
