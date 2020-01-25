@@ -12,7 +12,7 @@ use YAML::PP;
 use Capture::Tiny ':all';
 use File::Basename;
 
-$Qiime2::Artifact::VERSION = '0.10.3';
+$Qiime2::Artifact::VERSION = '0.10.5';
 
 sub crash($);
 
@@ -137,7 +137,7 @@ sub _read_artifact {
   $self->{version} = $1 if ($root_version=~/framework:\s*\"?(.+)\"?/);
   $self->{archive} = $1 if ($root_version=~/archive:\s*\"?(.+)\"?/);
   $self->{loaded} = 1;
-  $self->{parents} = (scalar keys %{ $self->{parents} })-1;
+  $self->{parents_number} = scalar( keys %{ $self->{parents} } ) - 1  ;
 
 }
 

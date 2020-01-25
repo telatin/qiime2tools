@@ -40,8 +40,8 @@ if ($opt_dump) {
   say 'ID:       [',$artifact->id, ']';
 
   say 'ORIGINAL: [',$artifact->{imported}, ']';
-  say 'PARENTS:  [',$artifact->{parents}, ']';
-  s
+  say 'PARENTS:  [',$artifact->{parents_number}, ']';
+  say RED, Dumper $artifact->{parents_number};
   say GREEN,  Dumper $artifact->{ancestry};
   say RESET '';
 }
