@@ -221,6 +221,11 @@ sub _check_output {
   # check if a command has a string in the output
   my ($cmd, $pattern) = @_;
   my $output = _run($cmd);
+
+  if ($output->{status} != 0) {
+      crash("Unable to test <$cmd>, execution returned $output->{status}");
+  }
+
   if ($output->{stdout} =~/$pattern/) {
     return 1;
   } elsif ($output->{stderr} =~/$pattern/) {

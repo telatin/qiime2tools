@@ -1,6 +1,7 @@
 0.10.5	2020-01-24
-	* POD, tests updates
-	
+	* POD and tests updates
+	* Improved check on unzip binary presence
+
 0.10.3	2020-01-24
 	* Upgraded ancestors
 
