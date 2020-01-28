@@ -4,7 +4,7 @@ Repository of utilities for Qiime2. Experimental.
 Qiime 2.0 is a complete rewrite of Qiime, and introduces the concept of artifacts to simplify the workflow, tracking metadata and provenance. This 
 repository is used to store experimental scripts to inspect or manipulate such artifacts.
 
-## Qiime2::Artifact
+## :package: Qiime2::Artifact
 
 This repository contains a :closed_book: **[Qiime2::Artifact](https://metacpan.org/pod/Qiime2::Artifact)** Perl module.
 
