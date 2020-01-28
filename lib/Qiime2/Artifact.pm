@@ -12,7 +12,7 @@ use YAML::PP;
 use Capture::Tiny ':all';
 use File::Basename;
 
-$Qiime2::Artifact::VERSION = '0.10.5';
+$Qiime2::Artifact::VERSION = '0.10.7';
 
 sub crash($);
 
@@ -31,8 +31,6 @@ sub new {
     my $self = {
 
         filename_arg  => $args->{filename},
-
-
         debug         => $args->{debug} // 0,
         verbose       => $args->{verbose} // 0,
         filename      => $abs_path,

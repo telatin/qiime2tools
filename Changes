@@ -1,3 +1,6 @@
+0.10.7	2020-01-28
+	*
+
 0.10.5	2020-01-24
 	* POD and tests updates
 	* Improved check on unzip binary presence
