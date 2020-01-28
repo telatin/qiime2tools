@@ -13,7 +13,7 @@ my $file_derived  = "$Bin/../data/tree-derived.qza";
 SKIP: {
 	skip "missing imported input file" unless (-e "$file_original");
 	skip "missing derived input file" unless (-e "$file_derived");
-	system('unzip');
+	system('unzip > /dev/null');
 	skip "unzip not found, but a path could be specified when creating the instance of Qiime2::Artifact\n" if ($?);
 	my $original = Qiime2::Artifact->new({ filename => "$file_original" });
 	my $derived  = Qiime2::Artifact->new({ filename => "$file_derived" });
