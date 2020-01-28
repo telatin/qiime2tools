@@ -5,17 +5,23 @@ use Test::More;
 use Data::Dumper;
 use FindBin qw($Bin);
 
-my $file = "$Bin/../data/table.qza";
-my $id   = 'd27b6a68-5c6e-46d9-9866-7b4d46cca533';
-my $version = "2018.6.0";
+my $file_original = "$Bin/../data/tree-imported.qza";
+my $file_derived  = "$Bin/../data/tree-derived.qza";
+
 
 
 SKIP: {
-	skip "missing input file" unless (-e "$file");
-	my $artifact = Qiime2::Artifact->new({ filename => "$file" });
+	skip "missing imported input file" unless (-e "$file_original");
+	skip "missing derived input file" unless (-e "$file_derived");
+	system('unzip');
+	skip "unzip not found, but a path could be specified when creating the instance of Qiime2::Artifact\n" if ($?);
+	my $original = Qiime2::Artifact->new({ filename => "$file_original" });
+	my $derived  = Qiime2::Artifact->new({ filename => "$file_derived" });
 	print 'VERSION ', $Qiime2::Artifact::VERSION, "\n";
-	ok($artifact->{imported} == 0, "Artifact is not imported (is derived)");
-	ok($artifact->{parents_number}  == 1, 'Artifact has 1 parent: '. $artifact->{parents_number} );
+	ok($derived->{imported}  == 0, "Derived Artifact is not imported (is derived)");
+	ok($original->{imported} == 1, "Imported Artifact detected as imported (not derived)");
+	ok($derived->{parents_number}  > 1, 'Derived Artifact has > 1 parent: '. $derived->{parents_number} );
+	ok($original->{parents_number}  == 1, 'Artifact has exactly 1 parent: '. $original	->{parents_number} );
 }
 
 done_testing();

@@ -13,6 +13,8 @@ print "$file\n";
 
 SKIP: {
 	skip "missing input file" unless (-e "$file");
+	system('unzip');
+	skip "unzip not found, but a path could be specified when creating the instance of Qiime2::Artifact\n" if ($?);
 	my $artifact = Qiime2::Artifact->new({ filename => "$file" });
 	ok($artifact->{loaded} == 1, 'Artifact was loaded');
 	ok($artifact->{id} eq "$id", 'Artifact has correct ID ' . $id);

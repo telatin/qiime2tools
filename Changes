@@ -1,5 +1,6 @@
 0.10.7	2020-01-28
-	*
+	* Skipping tests when 'unzip' is not found
+	* test 11_provenance.t will check the "imported" attribute
 
 0.10.5	2020-01-24
 	* POD and tests updates
