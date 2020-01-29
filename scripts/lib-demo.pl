@@ -29,7 +29,7 @@ if (-e "$ARGV[0]") {
 }
 my $artifact = Qiime2::Artifact->new( {
     filename => "$file",
-    debug => 1 }
+}
 );
 
 
@@ -40,12 +40,12 @@ if ($opt_dump) {
 }  else {
 
   say 'FILENAME: [',  $artifact->{filename}, ']';
-  say 'ID:       [',$artifact->id, ']';
+  say 'ID:       [',$artifact->get('id'), ']';
 
   say 'ORIGINAL: [',$artifact->{imported}, ']';
   say 'PARENTS:  [',$artifact->{parents_number}, ']';
-  say RED, Dumper $artifact->{parents_number};
-  say GREEN,  Dumper $artifact->{ancestry};
+  say RED, 'Parents: ', Dumper $artifact->{parents_number};
+  say CYAN,  Dumper $artifact->{ancestry};
   say RESET '';
 }
 

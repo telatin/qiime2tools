@@ -1,4 +1,13 @@
-0.10.6	2020-01-28
+# NOTE THAT v0.xx ARE PRE-RELEASES
+
+0.10.7	2020-02
+	* get() method to retrieve artifact data dying if the key is not found
+	* Code cleanup
+	* added reads.qza and reads.qzv artifacts
+	* POD updates
+	* Tests coverage improved
+
+0.10.6	2020-01-29
   * API documentation on github (https://github.com/telatin/qiime2tools/wiki)
 	* Skipping tests when 'unzip' is not found
 	* test 11_provenance.t will check the "imported" attribute
