@@ -5,18 +5,20 @@ use Test::More;
 use Data::Dumper;
 use FindBin qw($Bin);
 
-
-my $file = "$Bin/../data/table.qza";
-my $id   = 'd27b6a68-5c6e-46d9-9866-7b4d46cca533';
-my $version = "2018.6.0";
-print "$file\n";
-
+my $file = "$Bin/../data/bad_artifact.zip";
 SKIP: {
 	skip "missing input file" unless (-e "$file");
 	system('unzip > /dev/null');
 	skip "unzip not found, but a path could be specified when creating the instance of Qiime2::Artifact\n" if ($?);
-	my $artifact = Qiime2::Artifact->new({ filename => "$file" });
-	ok($artifact->{loaded} == 1, 'Artifact was loaded');
+
+  eval {
+   print STDERR "Not a valid artifact $file:\n";
+	 my $artifact = Qiime2::Artifact->new({ filename => "$file" });
+   print STDERR "\n";
+  };
+
+  ok($@, "$file is not an artifact");
+
 }
 
 done_testing();

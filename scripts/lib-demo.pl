@@ -27,7 +27,10 @@ if (-e "$ARGV[0]") {
 } else {
   die "Specify artifact\n";
 }
-my $artifact = Qiime2::Artifact->new( { filename => "$file", debug => 1 });
+my $artifact = Qiime2::Artifact->new( {
+    filename => "$file",
+    debug => 1 }
+);
 
 
 if ($opt_dump) {
