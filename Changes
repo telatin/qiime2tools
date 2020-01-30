@@ -2,10 +2,9 @@
 
 0.10.7	2020-02
 	* get() method to retrieve artifact data dying if the key is not found
-	* Code cleanup
-	* added reads.qza and reads.qzv artifacts
-	* POD updates
-	* Tests coverage improved
+	* Code cleanup, POD updates
+	* added test artifacts and improved tests coverage
+	* Requires 5.14 and not 5.18 (tentative)
 
 0.10.6	2020-01-29
   * API documentation on github (https://github.com/telatin/qiime2tools/wiki)

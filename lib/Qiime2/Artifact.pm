@@ -1,7 +1,7 @@
 package Qiime2::Artifact;
 #ABSTRACT: A parser for Qiime2 artifact files
 
-use 5.016;
+use 5.014;
 use warnings;
 use autodie;
 use Carp qw(confess);
@@ -14,10 +14,7 @@ use File::Basename;
 
 $Qiime2::Artifact::VERSION = '0.10.7';
 
-our $DEBUG = 0;
-our $VERBOSE = 0;
-
-sub _crash($);
+sub _crash($ $);
 
 sub new {
     my ($class, $args) = @_;
@@ -30,7 +27,7 @@ sub new {
       'verbose'  => 'Enable verbose mode (not implemented)'
     );
     for my $parameter (keys %{ $args }) {
-      _crash("Parameter <$parameter> is not a valid Qiime2::Artifact->new() attribute.\nValid options: " .
+      _crash(undef, "Parameter <$parameter> is not a valid Qiime2::Artifact->new() attribute.\nValid options: " .
         join(', ', sort keys %accepted_args)) if (not $accepted_args{$parameter});
     }
 
@@ -41,9 +38,9 @@ sub new {
     chomp($unzip_path);
 
    	# Check supplied filename (abs_path uses the filesystem and return undef if file not found)
-    _crash "Filename not found: $args->{filename}" unless defined $abs_path;
+    _crash undef, "Filename not found: $args->{filename}" unless defined $abs_path;
     # Check unzip
-    _crash "UnZip not found as <$unzip_path>.\n" unless _check_unzip($unzip_path);
+    _crash undef, "UnZip not found as <$unzip_path>.\n" unless _check_unzip($unzip_path);
 
     my $self = {
 
@@ -54,8 +51,6 @@ sub new {
         unzip_path    => $unzip_path,
     };
 
-    $VERBOSE = $self->{verbose};
-    $DEBUG   = $self->{debug};
 
     my $object = bless $self, $class;
 
@@ -76,16 +71,16 @@ sub _read_artifact {
   $self->{visualization} = 0  ;
 
 	if (not defined $self->{filename}) {
-		_crash "_read_artifact: filename not defined $self";
+		_crash $self, "_read_artifact: filename not defined $self";
 	}
   if (not defined $self->{unzip_path}) {
-		_crash "_read_artifact: <unzip> path not defined $self";
+		_crash $self, "_read_artifact: <unzip> path not defined $self";
 	}  # Read files content in the artifact
   my $artifact_raw = _run( [$self->{unzip_path}, '-t', $self->{filename}] );
 
       if ($artifact_raw->{status} != 0) {
         # Unzip -t failed: not a zip file
-        _crash("$self->{filename} is not a ZIP file");
+        _crash $self, "$self->{filename} is not a ZIP file";
       }
 
   my $artifact_id;
@@ -99,7 +94,7 @@ sub _read_artifact {
     if ($line=~/testing:\s+(.+?)\s+OK/) {
         my ($id, $root, @path) = split /\//, $1;
 
-        _crash "$self->{filename} is not a valid artifact:\n  \"{id}/directory/data\" structure expected, found:\n  \"$1\"" unless (defined $root);
+        _crash $self, "$self->{filename} is not a valid artifact:\n  \"{id}/directory/data\" structure expected, found:\n  \"$1\"" unless (defined $root);
         my $stripped_path = $root;
         $stripped_path.= '/' . join('/', @path) if ($path[0]);
         $artifact_files{$stripped_path} = $1;
@@ -107,7 +102,7 @@ sub _read_artifact {
         if (! defined $artifact_id) {
           $artifact_id = $id;
         } elsif ($artifact_id ne $id) {
-          _crash "Artifact format error: Artifact $self->{filename} has multiple roots ($artifact_id but also $id).\n";
+          _crash $self, "Artifact format error: Artifact $self->{filename} has multiple roots ($artifact_id but also $id).\n";
         }
         if ($root eq 'data') {
           if (basename($stripped_path) eq 'index.html') {
@@ -129,13 +124,13 @@ sub _read_artifact {
   $self->{data} = \@artifact_data;
 
   if (not defined $self->{data}[0]) {
-    _crash("No data found in artifact $self->{filename}");
+    _crash($self, "No data found in artifact $self->{filename}");
   }
   $self->{id} = $artifact_id;
   my $auto = _YAMLLoad( $self->_getArtifactText($self->{id} .'/provenance/action/action.yaml') , $self->{id} .'/provenance/action/action.yaml' );
   $self->{parents}->{self} = $auto->{action};
 
-  _crash("No self parent") if (not defined $self->{parents}->{self});
+  _crash($self, "No self parent") if (not defined $self->{parents}->{self});
 
   for my $key (keys %artifact_parents) {    # key=fa0cb712-1940-4971-9e7c-a08581e948ed
     my $parent = $self->_get_parent($key);
@@ -224,7 +219,7 @@ sub _check_unzip {
     my $output = _run($cmd_list);
 
     if ($output->{status} != 0) {
-        _crash("Unable to test <$$cmd_list[0]>, execution returned $output->{status}.\n".
+        _crash(undef, "Unable to test <$$cmd_list[0]>, execution returned $output->{status}.\n".
         "Under Linux and macOS $$cmd_list[0] is expected to print its help when invoked.\n");
     }
 
@@ -250,7 +245,7 @@ sub _check_unzip {
       # Try at least checking if unzip if installed
       system(['which', $$cmd_list[0]]);
       if ($?) {
-        _crash("Trying under non Linux/MacOS: <which $$cmd_list[0]> returned $?.\n".
+        _crash(undef, "Trying under non Linux/MacOS: <which $$cmd_list[0]> returned $?.\n".
         "#Debug: $output->{stdout}\n#Debug: $output->{stderr}\n");
       } else {
         # Binary is present, non tested for Version
@@ -327,7 +322,7 @@ sub get {
   if (defined $self->{$key}) {
     return $self->{$key};
   } else {
-    _crash("<$key> is not an attribute of this Artifact");
+    _crash($self, "<$key> is not an attribute of this Artifact");
   }
 }
 sub _debug {
@@ -351,7 +346,7 @@ sub _YAMLLoad {
   my $ypp = YAML::PP->new;
 
   unless (length($string)) {
-    _crash "YAML string empty: unexpected error";
+    _crash undef, "YAML string empty: unexpected error";
   }
 
   my $result = eval {
@@ -359,21 +354,22 @@ sub _YAMLLoad {
   };
 
   if ($@) {
-    _crash "YAMLLoad failed on string $info:\n------------------------------------------------\n$string";
+    _crash undef, "YAMLLoad failed on string $info:\n------------------------------------------------\n$string";
   } else {
     return $result;
   }
 }
 
-sub _crash($) {
-  chomp($_[0]);
-
-  if ($VERBOSE or $DEBUG) {
+sub _crash($ $) {
+  my ($self, $msg) = @_;
+  chomp($msg);
+  $msg =~s/\n/\n /g;
+  if (! defined $self or ($self->{verbose} or $self->{debug}) ) {
 	   print STDERR BOLD RED " [Qiime2::Reader ERROR]",RESET,"\n";
-	   print STDERR RED " $_[0]\n ", '-' x 60, "\n", RESET;
+	   print STDERR RED " $msg\n ", '-' x 64, "\n", RESET;
 	   confess();
   } else {
-     confess('[Qiime2::Artifact] ', $_[0], "\n");
+     confess('[Qiime2::Artifact ERROR] ', $msg, "\n");
   }
 }
 
