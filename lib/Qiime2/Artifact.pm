@@ -238,9 +238,10 @@ sub _check_unzip {
       return 3;
     } else {
       # First try to check for Linux-like UnZip
+      $pattern = 'unzip';
       my $output = _run($cmd_list);
-      return 1 if ($output->{stdout} =~/$pattern/);
-      return 2 if ($output->{stderr} =~/$pattern/);
+      return 1 if ($output->{stdout} =~/$pattern/i);
+      return 2 if ($output->{stderr} =~/$pattern/i);
 
       # Try at least checking if unzip if installed
       system(['which', $$cmd_list[0]]);
