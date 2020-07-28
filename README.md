@@ -12,7 +12,7 @@ The documentation is hosted in the :book: [wiki](https://github.com/telatin/qiim
 
 ## :package: qzoom.pl
 Updated utility to extract data from Qiime 2 artifacts. 
-See [qzoom documentation](https://github.com/telatin/qiime2tools/blob/master/docs/qzoom_readme.md).
+See [qzoom documentation](https://github.com/telatin/qiime2tools/blob/master/notes/qzoom_readme.md).
 
 It works independently from Qiime2, its meant to automate common tasks 
 (e.g. extract .*biom* file and automatically converts it to .*tsv* if the `biom` tool is available).  
@@ -32,7 +32,7 @@ qzoom.pl  *.qz?
 
 
 Screenshot in *info* mode:
-![Screenshot](docs/qzoom.png)
+![Screenshot](notes/qzoom.png)
 
 ### Extract mode
 
@@ -40,5 +40,5 @@ In extract mode we want to extract the content of the `data` directory for regul
 
 Combining `-x` (extract) with `-r` (rename), will extract the single file of the data directory getting the name from the artifact.
 
-![Extract](docs/extract.png)
+![Extract](notes/extract.png)
 
