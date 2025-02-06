@@ -342,24 +342,41 @@ sub _verbose {
   }
   return 0;
 }
+
+
 sub _YAMLLoad {
-  my ($string, $info) = @_;
-  my $ypp = YAML::PP->new;
+    my ($string, $info) = @_;
 
-  unless (length($string)) {
-    _crash undef, "YAML string empty: unexpected error";
-  }
+    # Create YAML::PP instance with custom tag handling
+    my $ypp = YAML::PP->new(schema => ['Core']);  # Load the Core schema
 
-  my $result = eval {
-    $ypp->load_string($string);
-  };
+    # Define handlers for custom tags (e.g., !ref, !cite)
+    $ypp->schema->add_tag('!ref', sub {
+        my ($constructor, $node) = @_;
+        # Simply return the value without further processing
+        return $node->{value};
+    });
+    $ypp->schema->add_tag('!cite', sub {
+        my ($constructor, $node) = @_;
+        # Handle the "!cite" tag (simply return the value)
+        return $node->{value};
+    });
 
-  if ($@) {
-    _crash undef, "YAMLLoad failed on string $info:\n------------------------------------------------\n$string";
-  } else {
-    return $result;
-  }
+    unless (length($string)) {
+        _crash undef, "YAML string empty: unexpected error";
+    }
+
+    my $result = eval {
+        $ypp->load_string($string);
+    };
+
+    if ($@) {
+        _crash undef, "YAMLLoad failed on string $info:\n------------------------------------------------\n$string\nError message: $@";
+    } else {
+        return $result;
+    }
 }
+
 
 sub _crash($ $) {
   my ($self, $msg) = @_;
