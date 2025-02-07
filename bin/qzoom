@@ -1,4 +1,6 @@
 #!/usr/bin/env perl
+# PODNAME: qzoom
+# ABSTRACT: A script to print metadata from Qiime2 artifacts
 use 5.014;
 use warnings;
 use Getopt::Long;
@@ -9,7 +11,7 @@ use File::Path qw(make_path);
 use Term::ANSIColor qw(:constants);
 use File::Spec;
 
-my $VERSION = '1.0.0';
+my $VERSION = '0.12.0';
 
 # Command line options
 my $opt = {
