@@ -464,23 +464,23 @@ Enable verbose reporting (for developers)
 
 =item B<get($key)>
 
-Return the $artifact->{$key}, and throws an error if the error is not found.
+Return the C<$artifact->{$key}>, and throws an error if the error is not found.
 
-=back
 
 =item B<get_bib()>
 
 Extracts and returns the bibliography information from the QIIME2 artifact.
 The bibliography is stored in BibTeX format within the artifact's zip file
-at {uuid}/provenance/citations.bib.
+at C<{uuid}/provenance/citations.bib>.
 
 Returns:
     - The content of the bibliography file if found
     - undef if no bibliography is found or if extraction fails
 
 Example:
-    my $bib = $artifact->get_bib();
-    print $bib if defined $bib;
+
+  my $bib = $artifact->get_bib();
+  print $bib if defined $bib;
 
 =back
 

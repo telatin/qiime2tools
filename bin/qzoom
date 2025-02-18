@@ -160,11 +160,7 @@ sub process_artifact {
 }
 
 __END__
-
-=head1 NAME
-
-qzoom.pl - a helper utility to extract data from Qiime2 artifacts
-
+ 
 =head1 SYNOPSIS
 
 qzoom.pl [options] <artifact1.qza/v> [<artifact2.qza ...]
@@ -262,3 +258,5 @@ Will produce:
   table.qza                      d27b6a68-5c6e-46d9-9866-7b4d46cca533 DATA     2018.6.0        1
   tree-derived.qza               54e4cde6-29d4-4da9-a6f1-9324b7780819 DATA     2019.10.0       1
   tree-imported.qza              c2d390bf-c37f-412e-9d17-dd8f5a7ef2cf DATA     2019.10.0       1
+
+=back
