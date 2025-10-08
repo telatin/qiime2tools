@@ -1,0 +1,62 @@
+name: Test
+
+# Run tests on push and pull requests
+on:
+  push:
+    branches: [ main, master, dev ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      # Don't cancel all matrix jobs if one fails
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        perl: ['5.14', '5.20', '5.26', '5.30', '5.32', '5.34', '5.36']
+    
+    name: Perl ${{ matrix.perl }} on ${{ matrix.os }}
+    
+    steps:
+      # Check out the repository
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      # Set up Perl with the specified version
+      - name: Set up Perl
+        uses: shogo82148/actions-setup-perl@v1
+        with:
+          perl-version: ${{ matrix.perl }}
+      
+      # Install system dependencies (unzip, which)
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y unzip
+      
+      # Install Dist::Zilla and common plugins
+      - name: Install Dist::Zilla
+        run: |
+          cpanm --notest Dist::Zilla
+          cpanm --notest Dist::Zilla::PluginBundle::Basic
+          cpanm --notest Dist::Zilla::Plugin::VersionFromModule
+          cpanm --notest Dist::Zilla::Plugin::ExecDir
+          cpanm --notest Dist::Zilla::Plugin::CheckBin
+          cpanm --notest Dist::Zilla::Plugin::PodWeaver
+          cpanm --notest Dist::Zilla::Plugin::MetaJSON
+          cpanm --notest Dist::Zilla::Plugin::MetaProvides::Package
+          cpanm --notest Dist::Zilla::Plugin::MetaResources
+      
+      # Install author dependencies for dzil
+      - name: Install author dependencies
+        run: dzil authordeps --missing | cpanm --notest
+      
+      # Install module dependencies
+      - name: Install dependencies
+        run: dzil listdeps --missing | cpanm --notest
+      
+      # Run tests using Dist::Zilla
+      - name: Run tests
+        run: dzil test --all
