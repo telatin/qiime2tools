@@ -4,6 +4,7 @@ A Perl module for parsing and extracting information from QIIME 2 artifact files
 
 [![Perl](https://img.shields.io/badge/perl-5.14+-brightgreen.svg)](https://dev.perl.org/)
 [![CPAN version](https://img.shields.io/cpan/v/Qiime2-Artifact)](https://metacpan.org/pod/Qiime2::Artifact)
+[![Test](https://github.com/telatin/qiime2tools/actions/workflows/perl-test.yaml/badge.svg)](https://github.com/telatin/qiime2tools/actions/workflows/perl-test.yaml)
 
 ## Overview
 
